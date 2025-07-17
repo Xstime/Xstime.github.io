@@ -24,15 +24,7 @@
       transition: background .4s, color .4s;
     }
 
-    /* ========= 粒子画布 ========= */
-    #bg-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: -2;
-    }
-
-    /* ========= 介绍动画 & 结构 ========= */
+    /* 介绍动画 & 结构 */
     .intro {
       position: fixed; inset: 0;
       background: var(--bg-color);
@@ -48,7 +40,7 @@
     @keyframes intro-show { to { opacity: 1; } }
     @keyframes intro-hide { to { opacity: 0; visibility: hidden; } }
 
-    /* ========= 头部 ========= */
+    /* 头部 */
     header {
       min-height: 100vh;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -72,7 +64,7 @@
 
     p { font-size: 1.25rem; margin: 20px 0 40px; }
 
-    /* ========= 主题切换 & 联系按钮 ========= */
+    /* 主题切换 & 联系按钮 */
     .cta-button, .theme-toggle {
       position: relative;
       display: inline-block;
@@ -128,180 +120,179 @@
       z-index: 100;
     }
 
-    /* ========= Scroll-Reveal 通用 ========= */
+    /* Scroll-Reveal 通用 */
     .reveal { opacity: 1 !important; transform: none !important; }
 
-        /* 项目模块样式 */
+    /* 项目模块样式 */
     #projects, #skills, #contact {
-    max-width: 800px;
-    margin: 80px auto;
-    padding: 20px;
-    text-align: center;
-    background: rgba(255,255,255,0.4);
-    border-radius: 20px;
-    backdrop-filter: blur(15px);
-    transition: background 0.4s, color 0.4s;
+      max-width: 800px;
+      margin: 80px auto;
+      padding: 20px;
+      text-align: center;
+      background: rgba(255,255,255,0.4);
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      transition: background 0.4s, color 0.4s;
     }
-
     body.dark-mode #projects,
     body.dark-mode #skills,
     body.dark-mode #contact {
-    background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.4);
     }
 
     .project-list {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      margin-top: 20px;
     }
 
     .project-item h3 {
-    margin-bottom: 10px;
+      margin-bottom: 10px;
     }
 
     .skill-tags {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
     }
 
     .tag {
-    padding: 6px 14px;
-    background: rgba(255,255,255,0.3);
-    border-radius: 20px;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    transition: background 0.3s;
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: var(--text-color);
+      transition: background 0.3s;
     }
-
     body.dark-mode .tag {
-    background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.3);
     }
 
     .input-box {
-    padding: 12px 20px;
-    margin: 0 8px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.8);
-    border-radius: 2rem;
-    backdrop-filter: blur(2px) saturate(180%);
-    box-shadow: 
-      0 8px 32px rgba(31,38,135,0.08),
-      inset 0 4px 20px rgba(255,255,255,0.15);
-    color: var(--text-color);
-    font-size: 1rem;
-    outline: none;
-    transition: border-color .3s, background .3s;
-  }
-  .input-box:focus {
-    border-color: var(--accent-color);
-    background: rgba(255,255,255,0.25);
-  }
-  body.dark-mode .input-box {
-    background: rgba(0,0,0,0.15);
-    border: 1px solid rgba(255,255,255,0.4);
-    color: var(--text-color);
-  }
-  body.dark-mode .input-box:focus {
-    background: rgba(0,0,0,0.25);
-    border-color: var(--accent-color);
-  }
+      padding: 12px 20px;
+      margin: 0 8px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 2rem;
+      backdrop-filter: blur(2px) saturate(180%);
+      box-shadow: 
+        0 8px 32px rgba(31,38,135,0.08),
+        inset 0 4px 20px rgba(255,255,255,0.15);
+      color: var(--text-color);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .3s, background .3s;
+    }
+    .input-box:focus {
+      border-color: var(--accent-color);
+      background: rgba(255,255,255,0.25);
+    }
+    body.dark-mode .input-box {
+      background: rgba(0,0,0,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: var(--text-color);
+    }
+    body.dark-mode .input-box:focus {
+      background: rgba(0,0,0,0.25);
+      border-color: var(--accent-color);
+    }
 
-  .side-nav {
-  position: fixed;
-  top: 80px;
-  left: 0;
-  width: 120px;
-  background: rgba(255,255,255,0.15); /* 按钮同款透明度 */
-  border: 1px solid rgba(255,255,255,0.8); /* 按钮同款边框 */
-  border-right: 1px solid #eee;
-  border-radius: 2rem; /* 按钮同款圆角 */
-  backdrop-filter: blur(2px) saturate(180%);
-  box-shadow:
-    0 8px 32px rgba(31,38,135,0.2),
-    inset 0 4px 20px rgba(255,255,255,0.3); /* 按钮同款阴影 */
-  z-index: 1000;
-  padding: 20px 0;
-  height: 60vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.03), 
-              0 8px 32px rgba(31,38,135,0.2),
-              inset 0 4px 20px rgba(255,255,255,0.3);
-  transform: translateY(60px);
-  opacity: 0;
-  transition: transform 0.6s cubic-bezier(.4,1.6,.4,1), opacity 0.6s, background 0.4s, border-color 0.4s;
-}
-body.dark-mode .side-nav {
-  background: rgba(0,0,0,0.15);
-  border: 1px solid rgba(255,255,255,0.4);
-}
-.side-nav.show {
-  transform: translateY(0);
-  opacity: 1;
-}
+    /* 侧边导航栏，按钮风格 */
+    .side-nav {
+      position: fixed;
+      top: 5vw;
+      left: 0;
+      width: clamp(90px, 22vw, 180px);
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.8);
+      border-right: 1px solid #eee;
+      border-radius: 2rem;
+      backdrop-filter: blur(2px) saturate(180%);
+      box-shadow:
+        0 8px 32px rgba(31,38,135,0.2),
+        inset 0 4px 20px rgba(255,255,255,0.3),
+        2px 0 8px rgba(0,0,0,0.03);
+      z-index: 1000;
+      padding: 20px 0;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateY(60px);
+      opacity: 0;
+      transition: 
+        width 0.3s,
+        min-width 0.3s,
+        max-width 0.3s,
+        transform 0.6s cubic-bezier(.4,1.6,.4,1), 
+        opacity 0.6s, 
+        background 0.4s, 
+        border-color 0.4s;
+    }
+    @media (max-width: 600px) {
+      .side-nav {
+        width: 90px;
+        min-width: 90px;
+        max-width: 90px;
+        left: 0;
+        transform: translateY(60px);
+        border-radius: 1.2rem;
+        padding: 12px 0;
+      }
+    }
+    .side-nav.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
 
-/* 让header和section初始背景透明，浮现时渐变到原背景 */
-header, #skills, #contact {
-  background: transparent;
-  transition:
-    background 0.8s cubic-bezier(.4,1.6,.4,1),
-    color 0.4s,
-    opacity .6s, transform .6s;
-}
-header.reveal {
-  background: rgba(255,255,255,0.4);
-}
-body.dark-mode header.reveal {
-  background: rgba(0,0,0,0.4);
-}
-#skills.reveal, #contact.reveal {
-  background: rgba(255,255,255,0.4);
-}
-body.dark-mode #skills.reveal,
-body.dark-mode #contact.reveal {
-  background: rgba(0,0,0,0.4);
-}
+    /* 让header和section初始背景透明，浮现时渐变到原背景 */
+    header, #skills, #contact {
+      background: transparent;
+      transition:
+        background 0.8s cubic-bezier(.4,1.6,.4,1),
+        color 0.4s,
+        opacity .6s, transform .6s;
+    }
+    header.reveal {
+      background: rgba(255,255,255,0.4);
+    }
+    body.dark-mode header.reveal {
+      background: rgba(0,0,0,0.4);
+    }
+    #skills.reveal, #contact.reveal {
+      background: rgba(255,255,255,0.4);
+    }
+    body.dark-mode #skills.reveal,
+    body.dark-mode #contact.reveal {
+      background: rgba(0,0,0,0.4);
+    }
 
-/* 响应式：移动端隐藏侧边栏，顶部显示菜单按钮 */
-@media (max-width: 700px) {
-  .side-nav {
-    display: none !important;
-  }
-  .mobile-nav-btn {
-    display: block;
-  }
-}
-.mobile-nav-btn {
-  display: none;
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 1100;
-  background: rgba(255,255,255,0.7);
-  border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+    /* 侧边栏自适应内容：窄屏只显示emoji */
+    @media (max-width: 600px) {
+      .side-nav .cta-button {
+        font-size: 1.5rem;
+        padding: 12px 0;
+        width: 44px;
+        min-width: 0;
+        text-align: center;
+      }
+      .side-nav .cta-button {
+        /* 隐藏除emoji外的内容 */
+        /* 用正则和JS更彻底，CSS只能隐藏文字 */
+        white-space: nowrap;
+      }
+    }
+
   </style>
 </head>
 <body>
-  <canvas id="bg-canvas"></canvas>
 
   <div class="intro">
-    <img src="touxiang.png"
-     alt="Yuhao">
+    <img src="touxiang.png" alt="Yuhao">
   </div>
-
-  <button class="mobile-nav-btn" onclick="toggleMobileNav()">☰</button>
 
   <nav class="side-nav" id="side-nav">
     <ul style="list-style:none;padding:0;margin:0;">
@@ -322,78 +313,74 @@ body.dark-mode #contact.reveal {
     </div>
   </header>
 
-    <div class="google-search-container" style="display:flex;justify-content:center;align-items:center;margin:32px 0 24px 0;">
+  <div class="google-search-container" style="display:flex;justify-content:center;align-items:center;margin:32px 0 24px 0;">
     <form id="google-search-form" target="_blank" action="https://www.google.com/search" method="GET" style="display:flex;gap:8px;">
       <input type="text" name="q" placeholder="Google搜索..." class="input-box">
       <button type="submit" class="cta-button">搜索</button>
     </form>
   </div>
 
-    <!-- 联系方式 -->
-    <section id="contact" class="reveal">
+  <!-- 联系方式 -->
+  <section id="contact" class="reveal">
     <h2>📫 联系我</h2>
     <p>欢迎交流项目、研究或合作！</p>
     <a href="mailto:yoaholyn@icloud.com" class="cta-button">📧 发邮件</a>
     <a href="https://github.com/Xstime" target="_blank" class="cta-button">🐙 GitHub</a>
-    </section>
+  </section>
 
-    <button id="back-to-top" class="cta-button" title="返回顶部" style="position:fixed;left:30px;bottom:40px;z-index:1001;display:none;width:44px;height:44px;border-radius:50%;font-size:22px;padding:0;">↑</button>
+  <button id="back-to-top" class="cta-button" title="返回顶部" style="position:fixed;left:30px;bottom:40px;z-index:1001;display:none;width:44px;height:44px;border-radius:50%;font-size:22px;padding:0;">↑</button>
 
   <script>
-  /* ====== 主题切换 ====== */
-  function toggleTheme() {
-    document.body.classList.toggle('dark-mode');
-  }
+    // 主题切换
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+    }
 
-  /* ====== Scroll-Reveal ====== */
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('reveal');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.2 });
+    // Scroll-Reveal
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('reveal');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.2 });
     [document.getElementById('main-header'),
-    document.getElementById('contact')
+      document.getElementById('contact')
     ].forEach(el => io.observe(el));
 
-  // 返回顶部按钮功能
-  const backToTop = document.getElementById('back-to-top');
-  window.addEventListener('scroll', () => {
-    backToTop.style.display = window.scrollY > 200 ? 'block' : 'none';
-  });
-  backToTop.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
+    // 返回顶部按钮功能
+    const backToTop = document.getElementById('back-to-top');
+    window.addEventListener('scroll', () => {
+      backToTop.style.display = window.scrollY > 200 ? 'block' : 'none';
+    });
+    backToTop.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
 
-  // intro动画结束后显示导航栏
-  window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      const nav = document.getElementById('side-nav');
-      nav.style.display = 'flex';
-      // 触发动画
-      setTimeout(() => nav.classList.add('show'), 10);
-    }, 4000); // intro动画总时长=1.5s+2.5s=4s
-  });
-
-  // 移动端菜单按钮功能
-  function toggleMobileNav() {
-    const nav = document.getElementById('side-nav');
-    if (nav.style.display === 'flex') {
-      nav.style.display = '';
-      nav.classList.remove('show');
-    } else {
-      nav.style.display = 'flex';
-      setTimeout(() => nav.classList.add('show'), 10);
-    }
-  }
-
-  // 页面加载后自动隐藏侧边栏（防止PC端切换到移动端时侧栏残留）
-  window.addEventListener('resize', () => {
-    if (window.innerWidth <= 700) {
-      document.getElementById('side-nav').style.display = '';
-      document.getElementById('side-nav').classList.remove('show');
-    }
-  });
+    // intro动画结束后显示导航栏
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const nav = document.getElementById('side-nav');
+        nav.style.display = 'flex';
+        setTimeout(() => nav.classList.add('show'), 10);
+      }, 4000); // intro动画总时长=1.5s+2.5s=4s
+    });
+    window.addEventListener('DOMContentLoaded', () => {
+      function updateNavEmojiOnly() {
+        const isNarrow = window.innerWidth <= 600;
+        document.querySelectorAll('.side-nav .cta-button').forEach(btn => {
+          if (!btn.dataset.fulltext) btn.dataset.fulltext = btn.innerHTML;
+          if (isNarrow) {
+            // 提取最后一个emoji
+            const match = btn.innerText.match(/[\p{Emoji}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}](?!.*[\p{Emoji}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}])/u);
+            btn.innerHTML = match ? match[0] : '';
+          } else {
+            btn.innerHTML = btn.dataset.fulltext;
+          }
+        });
+      }
+      updateNavEmojiOnly();
+      window.addEventListener('resize', updateNavEmojiOnly);
+    });
   </script>
 </body>
 </html>
