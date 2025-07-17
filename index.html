@@ -301,11 +301,15 @@ body.dark-mode #contact.reveal {
      alt="Yuhao">
   </div>
 
+  <button class="mobile-nav-btn" onclick="toggleMobileNav()">☰</button>
+
   <nav class="side-nav" id="side-nav">
     <ul style="list-style:none;padding:0;margin:0;">
-      <li style="margin:18px 0;"><a href="#main-header" class="cta-button">主页</a></li>
-      <li style="margin:18px 0;"><a href="#skills" class="cta-button">技术栈</a></li>
-      <li style="margin:18px 0;"><a href="#contact" class="cta-button">联系我</a></li>
+      <li style="margin:18px 0;"><a href="#main-header" class="cta-button">主页🏠</a></li>
+      <li style="margin:18px 0;"><a href="#contact" class="cta-button">联系☎️</a></li>
+      <li style="margin:18px 0;"><a href="https://1lou.one/" class="cta-button">电影🎬</a></li>
+      <li style="margin:18px 0;"><a href="https://heipg.cn/" class="cta-button">黑果🍎</a></li>
+      <li style="margin:18px 0;"><a href="https://appstorrent.ru/" class="cta-button">俄果🍏</a></li>
     </ul>
   </nav>
   <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
@@ -324,16 +328,6 @@ body.dark-mode #contact.reveal {
       <button type="submit" class="cta-button">搜索</button>
     </form>
   </div>
-
-    <!-- 技术栈展示 -->
-    <section id="skills" class="reveal">
-    <h2>🧠 我的技术栈</h2>
-    <div class="skill-tags">
-        <span class="tag">Python</span>
-        <span class="tag">Notion API</span>
-        <span class="tag">JavaScript</span>
-    </div>
-  </section>
 
     <!-- 联系方式 -->
     <section id="contact" class="reveal">
@@ -361,7 +355,6 @@ body.dark-mode #contact.reveal {
     });
   }, { threshold: 0.2 });
     [document.getElementById('main-header'),
-    document.getElementById('skills'),
     document.getElementById('contact')
     ].forEach(el => io.observe(el));
 
@@ -380,6 +373,26 @@ body.dark-mode #contact.reveal {
       // 触发动画
       setTimeout(() => nav.classList.add('show'), 10);
     }, 4000); // intro动画总时长=1.5s+2.5s=4s
+  });
+
+  // 移动端菜单按钮功能
+  function toggleMobileNav() {
+    const nav = document.getElementById('side-nav');
+    if (nav.style.display === 'flex') {
+      nav.style.display = '';
+      nav.classList.remove('show');
+    } else {
+      nav.style.display = 'flex';
+      setTimeout(() => nav.classList.add('show'), 10);
+    }
+  }
+
+  // 页面加载后自动隐藏侧边栏（防止PC端切换到移动端时侧栏残留）
+  window.addEventListener('resize', () => {
+    if (window.innerWidth <= 700) {
+      document.getElementById('side-nav').style.display = '';
+      document.getElementById('side-nav').classList.remove('show');
+    }
   });
   </script>
 </body>
