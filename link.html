@@ -163,39 +163,52 @@
             background-color: var(--delete-hover-bg);
         }
         
-        .theme-toggle {
+        .fixed-button {
             position: fixed;
-            top: 20px;
-            right: 20px;
             z-index: 100;
             background: var(--input-bg);
             border: 1px solid transparent;
-            border-radius: 2rem;
-            padding: 8px;
-            cursor: pointer;
-        }
-
-        .back-button {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: var(--input-bg);
-            border: 1px solid transparent;
-            border-radius: 2rem;
-            padding: 8px 12px;
+            border-radius: 50%; /* Make it circular */
+            width: 40px;
+            height: 40px;
             cursor: pointer;
             text-decoration: none;
             color: var(--text-color);
             font-size: 20px;
-            line-height: 1;
+            line-height: 40px; /* Center icon vertically */
+            text-align: center; /* Center icon horizontally */
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .fixed-button:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .fixed-button:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .back-button {
+            top: 20px;
+            left: 20px;
+        }
+
+        .theme-toggle {
+            top: 20px;
+            right: 20px;
+        }
+
+        .router-button {
+            top: 70px; /* 20px (top) + 40px (height) + 10px (gap) */
+            right: 20px;
         }
     </style>
 </head>
 <body>
 
-    <a href="index.html" class="back-button">←</a>
-    <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
+    <a href="index.html" class="fixed-button back-button">←</a>
+    <button class="fixed-button theme-toggle" onclick="toggleTheme()">🌗</button>
+    <a href="https://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
 
     <div class="container">
         <h1>由此出发</h1>
