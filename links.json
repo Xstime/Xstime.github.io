@@ -16,6 +16,10 @@
     "url": "https://appstorrent.ru"
   },
   {
+    "name": "黑苹果星球",
+    "url": "https://heipg.cn"
+  },
+  {
     "name": "电影",
     "url": "https://www.1lou.one"
   },
@@ -46,5 +50,13 @@
   {
     "name": "雀魂麻将",
     "url": "https://game.maj-soul.com/1/"
+  },
+  {
+    "name": "HSBC HK",
+    "url": "https://www.hsbc.com.hk"
+  },
+  {
+    "name": "NJIT信息门户",
+    "url": "http://ehall.njit.edu.cn/new/index.html"
   }
 ]
