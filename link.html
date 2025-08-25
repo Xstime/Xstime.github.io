@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链接</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --text-color: #1d1d1f;
+            --accent-color: #0071e3;
+            --container-bg: rgba(255, 255, 255, 0.8);
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --button-bg: rgba(0, 113, 227, 0.8);
+            --button-hover-bg: rgba(0, 113, 227, 1);
+            --delete-bg: rgba(255, 59, 48, 0.8);
+            --delete-hover-bg: rgba(255, 59, 48, 1);
+        }
+
+        body.dark-mode {
+            --bg-color: #1d1d1f;
+            --text-color: #f5f5f7;
+            --accent-color: #0a84ff;
+            --container-bg: rgba(0, 0, 0, 0.5);
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --button-bg: rgba(10, 132, 255, 0.8);
+            --button-hover-bg: rgba(10, 132, 255, 1);
+            --delete-bg: rgba(255, 69, 58, 0.8);
+            --delete-hover-bg: rgba(255, 69, 58, 1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--container-bg);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            font-size: 40px;
+            margin-bottom: 40px;
+            transition: color .3s;
+        }
+        h1:hover {
+            color: var(--accent-color);
+        }
+
+        .add-link-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-link-form input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 18px;
+            outline: none;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .add-link-form input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .add-link-form button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            background-color: var(--button-bg);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-link-form button:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        #link-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+        }
+
+        .link-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--input-bg);
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+            aspect-ratio: 4 / 3;
+            text-align: center;
+        }
+
+        .link-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .link-item .favicon {
+            width: 40px;
+            height: 40px;
+            margin-right: 0;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .link-item span {
+            flex-grow: 0;
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Limit to 2 lines */
+            line-clamp: 2; /* Standard property for compatibility */
+            -webkit-box-orient: vertical;
+            line-height: 1.3;
+        }
+
+        .delete-btn {
+            background-color: var(--delete-bg);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            line-height: 24px;
+            text-align: center;
+            cursor: pointer;
+            margin-left: 10px;
+            flex-shrink: 0;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--delete-hover-bg);
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: var(--input-bg);
+            border: 1px solid transparent;
+            border-radius: 2rem;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: var(--input-bg);
+            border: 1px solid transparent;
+            border-radius: 2rem;
+            padding: 8px 12px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 20px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-button">←</a>
+    <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
+
+    <div class="container">
+        <h1>由此出发</h1>
+        <div id="link-list"></div>
+    </div>
+
+    <script>
+        const linkList = document.getElementById('link-list');
+
+        // 从 links.json 文件加载链接
+        async function loadLinks() {
+            try {
+                const response = await fetch('./links.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const links = await response.json();
+                renderLinks(links);
+            } catch (error) {
+                console.error('无法加载 links.json 文件:', error);
+                linkList.innerHTML = '<p style="text-align:center; color: #ff453a;">加载链接失败。请检查 links.json 文件是否存在且格式正确。</p>';
+            }
+        }
+
+        // 渲染链接到页面
+        function renderLinks(links = []) {
+            linkList.innerHTML = '';
+            if (links.length === 0) {
+                linkList.innerHTML = '<p style="text-align:center;">没有找到链接。</p>';
+                return;
+            }
+            links.forEach(link => {
+                const linkItem = document.createElement('a');
+                linkItem.href = link.url;
+                linkItem.target = '_blank';
+                linkItem.className = 'link-item';
+
+                // Create and add the favicon
+                const favicon = document.createElement('img');
+                favicon.className = 'favicon';
+                try {
+                    const domain = new URL(link.url).hostname;
+                    // Using a reliable favicon service
+                    favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                } catch (e) {
+                    // Hide icon if URL is invalid
+                    favicon.style.display = 'none';
+                }
+                // In case the icon fails to load (e.g., 404)
+                favicon.onerror = () => { favicon.style.display = 'none'; };
+                linkItem.appendChild(favicon);
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = link.name;
+                linkItem.appendChild(nameSpan);
+
+                linkList.appendChild(linkItem);
+            });
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        // 初始加载
+        loadLinks();
+    </script>
+</body>
+</html>
