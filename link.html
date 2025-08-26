@@ -251,14 +251,19 @@
                 favicon.className = 'favicon';
                 try {
                     const domain = new URL(link.url).hostname;
-                    // Using a reliable favicon service
-                    favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                    // 优先从本地 /icon 文件夹加载图标
+                    favicon.src = `icon/${domain}.png`;
+
+                    // 如果本地图标加载失败，则回退到从 Google 服务获取
+                    favicon.onerror = () => {
+                        favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                        // 防止回退也失败时进入死循环
+                        favicon.onerror = null; 
+                    };
                 } catch (e) {
-                    // Hide icon if URL is invalid
+                    // 如果 URL 无效，则隐藏图标
                     favicon.style.display = 'none';
                 }
-                // In case the icon fails to load (e.g., 404)
-                favicon.onerror = () => { favicon.style.display = 'none'; };
                 linkItem.appendChild(favicon);
                 
                 const nameSpan = document.createElement('span');
