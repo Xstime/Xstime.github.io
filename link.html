@@ -16,10 +16,11 @@
             --button-hover-bg: rgba(0, 113, 227, 1);
             --delete-bg: rgba(255, 59, 48, 0.8);
             --delete-hover-bg: rgba(255, 59, 48, 1);
-            --dock-bg: rgba(255, 255, 255, 0.3);
-            --dock-border: rgba(255, 255, 255, 0.5);
-            --dock-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            --dock-inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+            --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            --accent-glow: rgba(0, 113, 227, 0.15);
         }
 
         body.dark-mode {
@@ -32,10 +33,19 @@
             --button-hover-bg: rgba(10, 132, 255, 1);
             --delete-bg: rgba(255, 69, 58, 0.8);
             --delete-hover-bg: rgba(255, 69, 58, 1);
-            --dock-bg: rgba(0, 0, 0, 0.3);
-            --dock-border: rgba(255, 255, 255, 0.2);
-            --dock-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            --dock-inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(0, 0, 0, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+            --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(10, 132, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
         }
 
         body {
@@ -43,11 +53,48 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             transition: background-color 0.4s, color 0.4s;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* 主内容容器 - Main Content Container */
+        .main-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            box-sizing: border-box;
+        }
+
+        /* 内容卡片基础样式 - Content Card Base Styles */
+        .content-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            pointer-events: none;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .content-card.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .content-card.prev {
+            transform: translateX(-100px);
         }
 
         .container {
+            width: 100%;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
@@ -55,6 +102,8 @@
             border-radius: 20px;
             backdrop-filter: blur(15px);
             box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         h1 {
@@ -72,6 +121,8 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .add-link-form input {
@@ -109,6 +160,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 20px;
+            width: 100%;
+            overflow: hidden;
         }
 
         @media (max-width: 768px) {
@@ -231,30 +284,410 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            align-items: flex-end; /* Align items to the bottom */
-            gap: 10px;
-            padding: 10px;
-            background: var(--dock-bg);
-            border-radius: 20px;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid var(--dock-border);
-            box-shadow: var(--dock-shadow), var(--dock-inset-shadow);
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow), var(--glass-inset);
             z-index: 1000;
-            height: 70px; /* Give dock a fixed height to contain growing items */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: calc(100vw - 40px);
+            width: auto;
+            white-space: nowrap;
         }
 
-        .dock a {
+        .dock-bubble {
+            position: absolute;
+            top: 4px;
+            left: 0;
+            width: 60px;
+            height: calc(100% - 8px);
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.2) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            border-radius: 20px;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 0;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+        }
+
+        body.dark-mode .dock-bubble {
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.02) 50%,
+                rgba(255, 255, 255, 0.05) 100%
+            );
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .dock-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 8px 14px;
+            border-radius: 18px;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            text-align: center;
+            transform-origin: bottom center;
+            z-index: 1;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .dock-item:hover {
+            transform: translateY(-2px) scale(1.05);
+            color: var(--accent-color);
+        }
+
+        .dock-item:active {
+            transform: translateY(0) scale(0.98);
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dock-item.active {
+            color: var(--accent-color);
+            text-shadow: 0 0 8px rgba(0, 113, 227, 0.3);
+        }
+
+        body.dark-mode .dock-item.active {
+            text-shadow: 0 0 8px rgba(10, 132, 255, 0.4);
+        }
+
+        .dock-icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .dock-label {
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0.9;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .dock-item:hover .dock-icon {
+            transform: scale(1.1);
+        }
+
+        .dock-item:hover .dock-label {
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced glass morphism effects */
+        .dock::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.02) 50%,
+                rgba(255, 255, 255, 0.05) 100%
+            );
+            border-radius: 24px;
+            z-index: -1;
+        }
+
+        body.dark-mode .dock::before {
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.05) 0%,
+                rgba(255, 255, 255, 0.01) 50%,
+                rgba(255, 255, 255, 0.02) 100%
+            );
+        }
+
+        /* Improved Safari compatibility */
+        @supports (-webkit-backdrop-filter: blur(20px)) {
+            .dock {
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                backdrop-filter: blur(20px) saturate(180%);
+            }
+        }
+
+        /* Safari-specific optimizations */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+            .dock {
+                -webkit-transform: translateX(-50%);
+                transform: translateX(-50%);
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                -webkit-perspective: 1000px;
+                perspective: 1000px;
+            }
+            
+            .dock-bubble {
+                -webkit-transform: scale(0.9);
+                transform: scale(0.9);
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+            }
+            
+            .dock-item {
+                -webkit-transform-origin: bottom center;
+                transform-origin: bottom center;
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+            }
+        }
+
+        /* Enhanced performance for Safari */
+        .dock, .dock-bubble, .dock-item {
+            will-change: transform, opacity;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+        }
+
+        /* 搜索页面样式 - Search Page Styles */
+        .search-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 1px solid transparent;
+            border-radius: 25px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .search-button {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 25px;
+            background-color: var(--button-bg);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: scale(1.05);
+        }
+
+        .search-suggestions, .quick-access {
+            margin-bottom: 30px;
+        }
+
+        .search-suggestions h3, .quick-access h3 {
+            margin-bottom: 15px;
+            color: var(--text-color);
+            font-size: 18px;
+        }
+
+        .suggestion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .tag {
+            padding: 8px 16px;
+            background-color: var(--input-bg);
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tag:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .quick-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--input-bg);
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quick-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .quick-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        /* 设置页面样式 - Settings Page Styles */
+        .settings-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background-color: var(--input-bg);
+            border-radius: 16px;
+        }
+
+        .settings-section h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 20px;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item label {
             display: block;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.2s;
-            will-change: transform, margin;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--text-color);
         }
 
-        .dock img {
-            width: 50px;
-            height: 50px;
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .theme-option {
+            padding: 10px 16px;
+            border: 2px solid transparent;
             border-radius: 12px;
-            display: block;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .theme-option:hover {
+            border-color: var(--accent-color);
+        }
+
+        .theme-option.active {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dock {
+                bottom: 15px;
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            
+            .dock-item {
+                padding: 6px 10px;
+                min-width: 50px;
+            }
+            
+            .dock-icon {
+                font-size: 20px;
+            }
+            
+            .dock-label {
+                font-size: 10px;
+            }
+            
+            .dock-bubble {
+                width: 50px;
+            }
+
+            .main-container {
+                padding-bottom: 85px; /* Smaller dock space on mobile */
+            }
+
+            .container {
+                margin: 0 10px;
+                padding: 15px;
+            }
+
+            .content-card {
+                padding: 10px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .quick-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .theme-selector {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -264,18 +697,111 @@
     <button class="fixed-button theme-toggle" onclick="toggleTheme()">🌗</button>
     <a href="http://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
 
-    <div class="container">
-        <h1>由此出发</h1>
-        <div id="link-list"></div>
+    <!-- 主内容容器 - Main Content Container -->
+    <div class="main-container">
+        
+        <!-- 内容卡片1：由此出发 - Content Card 1: Launch Pad -->
+        <div id="content-home" class="content-card active">
+            <div class="container">
+                <h1>由此出发</h1>
+                <div id="link-list"></div>
+            </div>
+        </div>
+
+        <!-- 内容卡片2：搜索发现 - Content Card 2: Search & Discovery -->
+        <div id="content-search" class="content-card">
+            <div class="container">
+                <h1>搜索发现</h1>
+                <div class="search-content">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="搜索网站、工具或服务..." class="search-input">
+                        <button class="search-button">🔍</button>
+                    </div>
+                    <div class="search-suggestions">
+                        <h3>热门搜索</h3>
+                        <div class="suggestion-tags">
+                            <span class="tag">开发工具</span>
+                            <span class="tag">设计资源</span>
+                            <span class="tag">学习平台</span>
+                            <span class="tag">效率软件</span>
+                            <span class="tag">娱乐休闲</span>
+                        </div>
+                    </div>
+                    <div class="quick-access">
+                        <h3>快速访问</h3>
+                        <div class="quick-links">
+                            <a href="https://www.google.com" target="_blank" class="quick-link">
+                                <span class="quick-icon">🌐</span>
+                                <span>Google 搜索</span>
+                            </a>
+                            <a href="https://github.com" target="_blank" class="quick-link">
+                                <span class="quick-icon">💻</span>
+                                <span>GitHub</span>
+                            </a>
+                            <a href="https://stackoverflow.com" target="_blank" class="quick-link">
+                                <span class="quick-icon">📚</span>
+                                <span>Stack Overflow</span>
+                            </a>
+                            <a href="https://www.youtube.com" target="_blank" class="quick-link">
+                                <span class="quick-icon">📺</span>
+                                <span>YouTube</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容卡片3：系统设置 - Content Card 3: System Settings -->
+        <div id="content-settings" class="content-card">
+            <div class="container">
+                <h1>系统设置</h1>
+                <div class="settings-content">
+                    <div class="settings-section">
+                        <h3>外观设置</h3>
+                        <div class="setting-item">
+                            <label>主题模式</label>
+                            <div class="theme-selector">
+                                <button class="theme-option active" data-theme="auto">🌗 自动</button>
+                                <button class="theme-option" data-theme="light">☀️ 明亮</button>
+                                <button class="theme-option" data-theme="dark">🌙 深色</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="dock" id="dock-container">
-        <!-- Dock items will be populated by JavaScript -->
+    <div class="dock">
+        <div class="dock-bubble"></div>
+        <a href="#" class="dock-item active" data-content="home">
+            <span class="dock-icon">🏠</span>
+            <span class="dock-label">主页</span>
+        </a>
+        <a href="#" class="dock-item" data-content="search">
+            <span class="dock-icon">🔍</span>
+            <span class="dock-label">搜索</span>
+        </a>
+        <a href="#" class="dock-item" data-content="settings">
+            <span class="dock-icon">⚙️</span>
+            <span class="dock-label">设置</span>
+        </a>
     </div>
 
     <script>
         const linkList = document.getElementById('link-list');
-        const dockContainer = document.getElementById('dock-container');
+        const turbulence = document.getElementById('turbulence');
+        let frame = 0;
+        let rad = Math.PI / 180;
+
+        function animateTurbulence() {
+            const bfx = 0.01 + 0.005 * Math.cos(frame * rad);
+            const bfy = 0.01 + 0.005 * Math.sin(frame * rad);
+            turbulence.setAttribute('baseFrequency', `${bfx} ${bfy}`);
+            frame += 0.5;
+            requestAnimationFrame(animateTurbulence);
+        }
 
         // 从 links.json 文件加载链接
         async function loadLinks() {
@@ -286,7 +812,6 @@
                 }
                 const links = await response.json();
                 renderLinks(links);
-                populateDock(links); // Populate the dock as well
             } catch (error) {
                 console.error('无法加载 links.json 文件:', error);
                 linkList.innerHTML = '<p style="text-align:center; color: #ff453a;">加载链接失败。请检查 links.json 文件是否存在且格式正确。</p>';
@@ -334,78 +859,252 @@
             });
         }
 
-        // Populate the dock with icons
-        function populateDock(links = []) {
-            dockContainer.innerHTML = '';
-            links.forEach(link => {
-                const dockLink = document.createElement('a');
-                dockLink.href = link.url;
-                dockLink.target = '_blank';
-                dockLink.title = link.name; // Show name on hover
-
-                const dockIcon = document.createElement('img');
-                try {
-                    const domain = new URL(link.url).hostname;
-                    dockIcon.src = `icon/${domain}.png`;
-                    dockIcon.onerror = () => {
-                        dockIcon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-                        dockIcon.onerror = null;
-                    };
-                } catch (e) {
-                    dockIcon.style.display = 'none';
-                }
-                
-                dockLink.appendChild(dockIcon);
-                dockContainer.appendChild(dockLink);
-            });
-            
-            // Add dock animation logic after icons are populated
-            setupDockAnimation();
-        }
-
-        function setupDockAnimation() {
-            const dock = document.querySelector('.dock');
-            if (!dock) return;
-            const icons = Array.from(dock.children);
-            const baseIconSize = 50; // Corresponds to img width/height in CSS
-            const maxIconSize = 100;
-            const magnificationRange = 150; // How far the mouse influence spreads
-
-            dock.addEventListener('mousemove', (e) => {
-                const dockRect = dock.getBoundingClientRect();
-                const mouseX = e.clientX - dockRect.left;
-
-                icons.forEach(icon => {
-                    const iconRect = icon.getBoundingClientRect();
-                    const iconCenterX = iconRect.left - dockRect.left + iconRect.width / 2;
-                    
-                    const distance = Math.abs(mouseX - iconCenterX);
-                    
-                    let scale = 1;
-                    if (distance < magnificationRange) {
-                        const proximity = (magnificationRange - distance) / magnificationRange;
-                        scale = 1 + (maxIconSize / baseIconSize - 1) * proximity;
-                    }
-                    
-                    icon.style.transform = `scale(${scale})`;
-                    icon.style.margin = `0 ${scale > 1 ? 5 : 0}px`; // Add some margin when scaled
-                });
-            });
-
-            dock.addEventListener('mouseleave', () => {
-                icons.forEach(icon => {
-                    icon.style.transform = 'scale(1)';
-                    icon.style.margin = '0';
-                });
-            });
-        }
-
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
         }
 
+        // 标签切换功能 - Tab Switching Functionality
+        function switchContent(targetContent) {
+            // 移除所有活动状态
+            document.querySelectorAll('.content-card').forEach(card => {
+                card.classList.remove('active', 'prev');
+            });
+            
+            document.querySelectorAll('.dock-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 激活目标内容和菜单项
+            const targetCard = document.getElementById(`content-${targetContent}`);
+            const targetMenuItem = document.querySelector(`.dock-item[data-content="${targetContent}"]`);
+            
+            if (targetCard && targetMenuItem) {
+                targetCard.classList.add('active');
+                targetMenuItem.classList.add('active');
+                
+                // 更新气泡位置
+                moveBubbleTo(targetMenuItem);
+            }
+        }
+
         // 初始加载
         loadLinks();
+        
+        // Liquid Dock Logic with Enhanced Effects
+        const dock = document.querySelector('.dock');
+        const bubble = document.querySelector('.dock-bubble');
+        const dockItems = document.querySelectorAll('.dock-item');
+        const activeItem = document.querySelector('.dock-item.active');
+
+        // Enhanced bubble movement with elastic easing
+        function moveBubbleTo(item) {
+            if (!item) return;
+            
+            const itemRect = item.getBoundingClientRect();
+            const dockRect = dock.getBoundingClientRect();
+            const left = itemRect.left - dockRect.left;
+            const width = itemRect.width;
+
+            // Apply smooth transform with enhanced properties
+            bubble.style.left = `${left}px`;
+            bubble.style.width = `${width}px`;
+            bubble.style.opacity = '1';
+            bubble.style.transform = 'scale(1)';
+            
+            // Add subtle glow effect for active state
+            if (item.classList.contains('active')) {
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                const glowColor = isDarkMode ? 'rgba(10, 132, 255, 0.2)' : 'rgba(0, 113, 227, 0.15)';
+                bubble.style.boxShadow = `
+                    0 4px 16px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+                    0 0 20px ${glowColor}
+                `;
+            } else {
+                bubble.style.boxShadow = `
+                    0 4px 16px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 1px rgba(255, 255, 255, 0.3)
+                `;
+            }
+        }
+
+        // Hide bubble with smooth transition
+        function hideBubble() {
+            bubble.style.opacity = '0';
+            bubble.style.transform = 'scale(0.9)';
+        }
+
+        // Set initial position for the bubble on the active item
+        if (activeItem) {
+            setTimeout(() => {
+                moveBubbleTo(activeItem);
+            }, 100);
+        }
+
+        // Enhanced hover effects with magnetic attraction
+        dockItems.forEach((item, index) => {
+            // 添加点击事件处理
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetContent = item.getAttribute('data-content');
+                switchContent(targetContent);
+            });
+
+            item.addEventListener('mouseenter', (e) => {
+                moveBubbleTo(item);
+                
+                // Add magnetic effect to neighboring items
+                dockItems.forEach((otherItem, otherIndex) => {
+                    const distance = Math.abs(index - otherIndex);
+                    if (distance === 1) {
+                        // Slight attraction for adjacent items
+                        otherItem.style.transform = index > otherIndex 
+                            ? 'translateX(2px) scale(1.02)' 
+                            : 'translateX(-2px) scale(1.02)';
+                    } else if (distance > 1) {
+                        // Reset for distant items
+                        otherItem.style.transform = '';
+                    }
+                });
+            });
+
+            item.addEventListener('mouseleave', () => {
+                // Reset all transforms
+                dockItems.forEach(otherItem => {
+                    otherItem.style.transform = '';
+                });
+            });
+
+            // Enhanced click effect
+            item.addEventListener('mousedown', () => {
+                item.style.transform = 'translateY(1px) scale(0.95)';
+                bubble.style.transform = 'scale(0.95)';
+            });
+
+            item.addEventListener('mouseup', () => {
+                item.style.transform = '';
+                bubble.style.transform = 'scale(1)';
+            });
+        });
+
+        // Improved dock hover behavior
+        dock.addEventListener('mouseenter', () => {
+            dock.style.transform = 'translateX(-50%) translateY(-2px) scale(1.02)';
+        });
+
+        dock.addEventListener('mouseleave', () => {
+            dock.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+            
+            // Return bubble to active item with delay for better UX
+            setTimeout(() => {
+                const currentActiveItem = document.querySelector('.dock-item.active');
+                if (currentActiveItem) {
+                    moveBubbleTo(currentActiveItem);
+                } else {
+                    hideBubble();
+                }
+                
+                // Reset all item transforms
+                dockItems.forEach(item => {
+                    item.style.transform = '';
+                });
+            }, 150);
+        });
+
+        // Add subtle parallax effect on scroll
+        let ticking = false;
+        function updateDockParallax() {
+            const scrolled = window.pageYOffset;
+            const parallax = scrolled * 0.02; // Subtle effect
+            
+            dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
+            ticking = false;
+        }
+
+        function requestTick() {
+            if (!ticking) {
+                requestAnimationFrame(updateDockParallax);
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', requestTick);
+
+        // Add touch support for mobile devices
+        if ('ontouchstart' in window) {
+            dockItems.forEach(item => {
+                item.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    moveBubbleTo(item);
+                    item.style.transform = 'scale(0.95)';
+                });
+
+                item.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    item.style.transform = '';
+                    // Simulate click
+                    const targetContent = item.getAttribute('data-content');
+                    switchContent(targetContent);
+                });
+            });
+        }
+
+        // 搜索功能 - Search Functionality
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.querySelector('.search-button');
+        const suggestionTags = document.querySelectorAll('.tag');
+
+        if (searchButton) {
+            searchButton.addEventListener('click', () => {
+                const query = searchInput.value.trim();
+                if (query) {
+                    // 在新标签页中打开Google搜索
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                }
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+        }
+
+        // 标签点击搜索
+        suggestionTags.forEach(tag => {
+            tag.addEventListener('click', () => {
+                const query = tag.textContent;
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            });
+        });
+
+        // 设置功能 - Settings Functionality
+        const themeOptions = document.querySelectorAll('.theme-option');
+
+        // 主题切换
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                themeOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                const theme = option.getAttribute('data-theme');
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else if (theme === 'light') {
+                    document.body.classList.remove('dark-mode');
+                } else {
+                    // Auto theme - 可以根据系统主题或时间来决定
+                    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (isDarkMode) {
+                        document.body.classList.add('dark-mode');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
