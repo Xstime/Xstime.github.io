@@ -16,6 +16,10 @@
             --button-hover-bg: rgba(0, 113, 227, 1);
             --delete-bg: rgba(255, 59, 48, 0.8);
             --delete-hover-bg: rgba(255, 59, 48, 1);
+            --dock-bg: rgba(255, 255, 255, 0.3);
+            --dock-border: rgba(255, 255, 255, 0.5);
+            --dock-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --dock-inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.7);
         }
 
         body.dark-mode {
@@ -28,6 +32,10 @@
             --button-hover-bg: rgba(10, 132, 255, 1);
             --delete-bg: rgba(255, 69, 58, 0.8);
             --delete-hover-bg: rgba(255, 69, 58, 1);
+            --dock-bg: rgba(0, 0, 0, 0.3);
+            --dock-border: rgba(255, 255, 255, 0.2);
+            --dock-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --dock-inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -101,6 +109,19 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            #link-list {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 15px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .fixed-button {
+                background-color: transparent;
+            }
         }
 
         .link-item {
@@ -203,21 +224,58 @@
             top: 70px; /* 20px (top) + 40px (height) + 10px (gap) */
             right: 20px;
         }
+
+        .dock {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: flex-end; /* Align items to the bottom */
+            gap: 10px;
+            padding: 10px;
+            background: var(--dock-bg);
+            border-radius: 20px;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--dock-border);
+            box-shadow: var(--dock-shadow), var(--dock-inset-shadow);
+            z-index: 1000;
+            height: 70px; /* Give dock a fixed height to contain growing items */
+        }
+
+        .dock a {
+            display: block;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.2s;
+            will-change: transform, margin;
+        }
+
+        .dock img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: block;
+        }
     </style>
 </head>
 <body>
 
     <a href="index.html" class="fixed-button back-button">←</a>
     <button class="fixed-button theme-toggle" onclick="toggleTheme()">🌗</button>
-    <a href="https://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
+    <a href="http://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
 
     <div class="container">
         <h1>由此出发</h1>
         <div id="link-list"></div>
     </div>
 
+    <div class="dock" id="dock-container">
+        <!-- Dock items will be populated by JavaScript -->
+    </div>
+
     <script>
         const linkList = document.getElementById('link-list');
+        const dockContainer = document.getElementById('dock-container');
 
         // 从 links.json 文件加载链接
         async function loadLinks() {
@@ -228,6 +286,7 @@
                 }
                 const links = await response.json();
                 renderLinks(links);
+                populateDock(links); // Populate the dock as well
             } catch (error) {
                 console.error('无法加载 links.json 文件:', error);
                 linkList.innerHTML = '<p style="text-align:center; color: #ff453a;">加载链接失败。请检查 links.json 文件是否存在且格式正确。</p>';
@@ -272,6 +331,72 @@
                 linkItem.appendChild(nameSpan);
 
                 linkList.appendChild(linkItem);
+            });
+        }
+
+        // Populate the dock with icons
+        function populateDock(links = []) {
+            dockContainer.innerHTML = '';
+            links.forEach(link => {
+                const dockLink = document.createElement('a');
+                dockLink.href = link.url;
+                dockLink.target = '_blank';
+                dockLink.title = link.name; // Show name on hover
+
+                const dockIcon = document.createElement('img');
+                try {
+                    const domain = new URL(link.url).hostname;
+                    dockIcon.src = `icon/${domain}.png`;
+                    dockIcon.onerror = () => {
+                        dockIcon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                        dockIcon.onerror = null;
+                    };
+                } catch (e) {
+                    dockIcon.style.display = 'none';
+                }
+                
+                dockLink.appendChild(dockIcon);
+                dockContainer.appendChild(dockLink);
+            });
+            
+            // Add dock animation logic after icons are populated
+            setupDockAnimation();
+        }
+
+        function setupDockAnimation() {
+            const dock = document.querySelector('.dock');
+            if (!dock) return;
+            const icons = Array.from(dock.children);
+            const baseIconSize = 50; // Corresponds to img width/height in CSS
+            const maxIconSize = 100;
+            const magnificationRange = 150; // How far the mouse influence spreads
+
+            dock.addEventListener('mousemove', (e) => {
+                const dockRect = dock.getBoundingClientRect();
+                const mouseX = e.clientX - dockRect.left;
+
+                icons.forEach(icon => {
+                    const iconRect = icon.getBoundingClientRect();
+                    const iconCenterX = iconRect.left - dockRect.left + iconRect.width / 2;
+                    
+                    const distance = Math.abs(mouseX - iconCenterX);
+                    
+                    let scale = 1;
+                    if (distance < magnificationRange) {
+                        const proximity = (magnificationRange - distance) / magnificationRange;
+                        scale = 1 + (maxIconSize / baseIconSize - 1) * proximity;
+                    }
+                    
+                    icon.style.transform = `scale(${scale})`;
+                    icon.style.margin = `0 ${scale > 1 ? 5 : 0}px`; // Add some margin when scaled
+                });
+            });
+
+            dock.addEventListener('mouseleave', () => {
+                icons.forEach(icon => {
+                    icon.style.transform = 'scale(1)';
+                    icon.style.margin = '0';
+                });
             });
         }
 
