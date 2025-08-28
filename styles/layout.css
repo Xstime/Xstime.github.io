@@ -39,17 +39,17 @@
 
 /* Content Cards */
 .content-card {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    min-height: 100vh;
-    opacity: 0;
-    transform: translateX(100px);
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    pointer-events: none;
-    padding: 20px;
-    box-sizing: border-box;
+    background: var(--card-bg);
+    border-radius: 15px;
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: auto; /* 改为auto高度 */
+    min-height: calc(100vh - 200px); /* 减去header和底部空间 */
+    overflow-y: visible; /* 允许正常滚动 */
 }
 
 .content-card.active {
@@ -276,6 +276,7 @@ header.reveal {
     
     .content-card {
         padding: 10px;
+        padding-bottom: 120px; /* 移动端也保持足够的底部空间 */
     }
     
     .quick-links {

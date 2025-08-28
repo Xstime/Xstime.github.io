@@ -201,6 +201,35 @@ body.dark-mode .loading-overlay {
     animation: spin 1s linear infinite;
 }
 
+/* Search Icon Styles */
+.search-button .search-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.search-button .search-icon img {
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+/* Main Search Box Styles */
+.main-search-container {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.main-search-box {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.main-search-input {
+    font-size: 16px;
+    padding: 14px 20px;
+}
+
 /* Animations */
 @keyframes spin {
     0% { transform: rotate(0deg); }
