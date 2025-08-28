@@ -691,6 +691,31 @@
         const ContentManager = {
             menuOrder: { 'home': 0, 'search': 1, 'settings': 2 },
             
+            init() {
+                // 确保只有当前活动的内容卡片显示，其他隐藏
+                this.initializeContentCards();
+                // 确保菜单项状态正确
+                this.updateActiveStates(AppState.currentContent);
+            },
+            
+            initializeContentCards() {
+                // 获取所有内容卡片
+                const contentCards = document.querySelectorAll('.content-card');
+                
+                contentCards.forEach(card => {
+                    const cardId = card.id;
+                    const contentType = cardId.replace('content-', '');
+                    
+                    // 清理所有动画类
+                    card.classList.remove('active', 'prev', 'next', 'from-right', 'from-left', 'exit-left', 'exit-right');
+                    
+                    // 只给当前活动内容添加 active 类
+                    if (contentType === AppState.currentContent) {
+                        card.classList.add('active');
+                    }
+                });
+            },
+            
             switch(targetContent) {
                 if (AppState.currentContent === targetContent) return;
                 
@@ -1122,6 +1147,7 @@
                     // 初始化各个管理器
                     ThemeManager.init();
                     DockManager.init();
+                    ContentManager.init();
                     EventManager.init();
                     
                     // 检测搜索引擎（并行执行）

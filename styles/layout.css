@@ -44,18 +44,22 @@
     left: 0;
     width: 100%;
     min-height: 100vh;
-    opacity: 0;
+    opacity: 0 !important;
     transform: translateX(100px);
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     pointer-events: none;
+    visibility: hidden;
+    z-index: 1;
     padding: 20px;
     box-sizing: border-box;
 }
 
 .content-card.active {
-    opacity: 1;
+    opacity: 1 !important;
     transform: translateX(0);
     pointer-events: all;
+    visibility: visible;
+    z-index: 2;
 }
 
 .content-card.active.from-right {
