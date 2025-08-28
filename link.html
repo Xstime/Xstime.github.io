@@ -11,12 +11,30 @@
     <link rel="stylesheet" href="styles/layout.css">
     <link rel="stylesheet" href="styles/animations.css">
     <link rel="stylesheet" href="styles/link.css">
+    <link rel="stylesheet" href="styles/loading.css">
 </head>
 <body>
 
     <a href="index.html" class="fixed-button back-button">←</a>
-    <button class="fixed-button theme-toggle" onclick="toggleTheme()">🌗</button>
+    <button class="fixed-button theme-toggle">🌗</button>
     <a href="http://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
+
+    <!-- 全局加载遮罩 - Global Loading Overlay -->
+    <div id="global-loading" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p class="loading-text">正在加载...</p>
+        </div>
+    </div>
+
+    <!-- 全局错误提示 - Global Error Toast -->
+    <div id="error-toast" class="error-toast">
+        <div class="error-content">
+            <span class="error-icon">⚠️</span>
+            <span class="error-message"></span>
+            <button class="error-close" onclick="hideErrorToast()">×</button>
+        </div>
+    </div>
 
     <!-- 主内容容器 - Main Content Container -->
     <div class="main-container">
@@ -25,18 +43,42 @@
         <div id="content-home" class="content-card active">
             <div class="container">
                 <h1 class="main-title">由此出发</h1>
+                <!-- 链接列表加载状态 -->
+                <div id="link-loading" class="section-loading">
+                    <div class="skeleton-grid">
+                        <div class="skeleton-item" v-for="i in 8"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                    </div>
+                </div>
                 <div id="link-list"></div>
+                <!-- 链接列表错误状态 -->
+                <div id="link-error" class="error-state" style="display: none;">
+                    <div class="error-icon">😵</div>
+                    <h3>加载失败</h3>
+                    <p>无法加载链接数据，请检查网络连接</p>
+                    <button class="retry-button" onclick="retryLoadLinks()">重试</button>
+                </div>
             </div>
         </div>
 
         <!-- 内容卡片2：搜索发现 - Content Card 2: Search & Discovery -->
         <div id="content-search" class="content-card">
             <div class="container">
-                <h1>学术资源</h1>
+                <h1 class="main-title">学术资源</h1>
                 <div class="search-content">
                     <div class="search-box">
                         <input type="text" id="search-input" placeholder="搜索学术数据库、论文或工具..." class="search-input">
-                        <button class="search-button">🔍</button>
+                        <button class="search-button" id="search-btn">
+                            <span class="search-icon">🔍</span>
+                            <span class="search-loading" style="display: none;">⏳</span>
+                        </button>
                     </div>
                     <div class="search-suggestions">
                         <h3>常用学术标签</h3>
@@ -80,7 +122,7 @@
         <!-- 内容卡片3：系统设置 - Content Card 3: System Settings -->
         <div id="content-settings" class="content-card">
             <div class="container">
-                <h1>系统设置</h1>
+                <h1 class="main-title">系统设置</h1>
                 <div class="settings-content">
                     <div class="settings-section">
                         <h3>外观设置</h3>
@@ -115,368 +157,778 @@
     </div>
 
     <script>
-        const linkList = document.getElementById('link-list');
-        const turbulence = document.getElementById('turbulence');
-        let frame = 0;
-        let rad = Math.PI / 180;
+        // 全局配置常量 - Global Configuration Constants
+        const CONFIG = {
+            ANIMATION_DURATION: 500,
+            LOADING_DELAY: 300,
+            ERROR_DISPLAY_TIME: 5000,
+            PARALLAX_FACTOR: 0.02,
+            BUBBLE_TRANSITION: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            RETRY_ATTEMPTS: 3,
+            RETRY_DELAY: 1000
+        };
 
-        function animateTurbulence() {
-            const bfx = 0.01 + 0.005 * Math.cos(frame * rad);
-            const bfy = 0.01 + 0.005 * Math.sin(frame * rad);
-            turbulence.setAttribute('baseFrequency', `${bfx} ${bfy}`);
-            frame += 0.5;
-            requestAnimationFrame(animateTurbulence);
-        }
+        // 全局状态管理 - Global State Management
+        const AppState = {
+            isLoading: false,
+            currentTheme: 'auto',
+            currentContent: 'home',
+            retryCount: 0,
+            links: []
+        };
 
-        // 从 links.json 文件加载链接
-        async function loadLinks() {
-            try {
-                const response = await fetch('./links.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+        // 工具函数 - Utility Functions
+        const Utils = {
+            // 防抖函数
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            },
+
+            // 节流函数
+            throttle(func, limit) {
+                let inThrottle;
+                return function() {
+                    const args = arguments;
+                    const context = this;
+                    if (!inThrottle) {
+                        func.apply(context, args);
+                        inThrottle = true;
+                        setTimeout(() => inThrottle = false, limit);
+                    }
                 }
-                const links = await response.json();
-                renderLinks(links);
-            } catch (error) {
-                console.error('无法加载 links.json 文件:', error);
-                linkList.innerHTML = '<p style="text-align:center; color: #ff453a;">加载链接失败。请检查 links.json 文件是否存在且格式正确。</p>';
-            }
-        }
+            },
 
-        // 渲染链接到页面
-        function renderLinks(links = []) {
-            linkList.innerHTML = '';
-            if (links.length === 0) {
-                linkList.innerHTML = '<p style="text-align:center;">没有找到链接。</p>';
-                return;
+            // 延迟执行
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            },
+
+            // 安全的DOM操作
+            safeQuerySelector(selector) {
+                try {
+                    return document.querySelector(selector);
+                } catch (e) {
+                    console.warn(`Invalid selector: ${selector}`);
+                    return null;
+                }
+            },
+
+            // 获取域名
+            getDomain(url) {
+                try {
+                    return new URL(url).hostname;
+                } catch (e) {
+                    console.warn(`Invalid URL: ${url}`);
+                    return null;
+                }
             }
-            links.forEach(link => {
+        };
+
+        // 加载状态管理 - Loading State Management
+        const LoadingManager = {
+            show(text = '正在加载...') {
+                const overlay = document.getElementById('global-loading');
+                const loadingText = overlay?.querySelector('.loading-text');
+                if (overlay) {
+                    if (loadingText) loadingText.textContent = text;
+                    overlay.style.display = 'flex';
+                    AppState.isLoading = true;
+                }
+            },
+
+            hide() {
+                const overlay = document.getElementById('global-loading');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    AppState.isLoading = false;
+                }
+            },
+
+            showSection(sectionId) {
+                const section = document.getElementById(`${sectionId}-loading`);
+                if (section) section.style.display = 'block';
+            },
+
+            hideSection(sectionId) {
+                const section = document.getElementById(`${sectionId}-loading`);
+                if (section) section.style.display = 'none';
+            }
+        };
+
+        // 错误处理管理 - Error Handling Management
+        const ErrorManager = {
+            show(message, type = 'error', duration = CONFIG.ERROR_DISPLAY_TIME) {
+                const toast = document.getElementById('error-toast');
+                const messageEl = toast?.querySelector('.error-message');
+                const iconEl = toast?.querySelector('.error-icon');
+                
+                if (toast && messageEl && iconEl) {
+                    // 清除之前的隐藏计时器和动画类
+                    if (this.hideTimer) {
+                        clearTimeout(this.hideTimer);
+                    }
+                    toast.classList.remove('hide');
+                    
+                    messageEl.textContent = message;
+                    iconEl.textContent = type === 'warning' ? '⚠️' : type === 'success' ? '✅' : '❌';
+                    toast.className = `error-toast ${type} show`;
+                    
+                    // 自动隐藏
+                    this.hideTimer = setTimeout(() => this.hide(), duration);
+                }
+            },
+
+            hide() {
+                const toast = document.getElementById('error-toast');
+                if (toast) {
+                    // 添加隐藏动画类
+                    toast.classList.add('hide');
+                    toast.classList.remove('show');
+                    
+                    // 动画完成后完全隐藏
+                    setTimeout(() => {
+                        toast.style.visibility = 'hidden';
+                        toast.classList.remove('hide');
+                    }, 300); // 与CSS动画时间匹配
+                    
+                    if (this.hideTimer) {
+                        clearTimeout(this.hideTimer);
+                        this.hideTimer = null;
+                    }
+                }
+            },
+
+            showSection(sectionId, message, retryCallback) {
+                const errorEl = document.getElementById(`${sectionId}-error`);
+                const messageEl = errorEl?.querySelector('p');
+                const retryBtn = errorEl?.querySelector('.retry-button');
+                
+                if (errorEl) {
+                    if (messageEl) messageEl.textContent = message;
+                    if (retryBtn && retryCallback) {
+                        retryBtn.onclick = retryCallback;
+                    }
+                    errorEl.style.display = 'block';
+                }
+            },
+
+            hideSection(sectionId) {
+                const errorEl = document.getElementById(`${sectionId}-error`);
+                if (errorEl) errorEl.style.display = 'none';
+            }
+        };
+
+        // 全局错误处理函数
+        window.hideErrorToast = () => ErrorManager.hide();
+        window.retryLoadLinks = () => LinkManager.loadWithRetry();
+
+        // 链接管理 - Link Management
+        const LinkManager = {
+            async load() {
+                try {
+                    LoadingManager.showSection('link');
+                    ErrorManager.hideSection('link');
+                    
+                    const response = await fetch('./links.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const links = await response.json();
+                    if (!Array.isArray(links)) {
+                        throw new Error('链接数据格式错误');
+                    }
+                    
+                    AppState.links = links;
+                    this.render(links);
+                    AppState.retryCount = 0; // 重置重试计数
+                    
+                } catch (error) {
+                    console.error('加载链接失败:', error);
+                    this.handleError(error);
+                } finally {
+                    LoadingManager.hideSection('link');
+                }
+            },
+
+            async loadWithRetry() {
+                if (AppState.retryCount >= CONFIG.RETRY_ATTEMPTS) {
+                    ErrorManager.show('重试次数过多，请稍后再试', 'error');
+                    return;
+                }
+                
+                AppState.retryCount++;
+                await Utils.delay(CONFIG.RETRY_DELAY * AppState.retryCount);
+                this.load();
+            },
+
+            handleError(error) {
+                const message = error.message || '加载链接失败，请检查网络连接';
+                ErrorManager.showSection('link', message, () => this.loadWithRetry());
+                ErrorManager.show(message, 'error');
+            },
+
+            render(links = []) {
+                const linkList = document.getElementById('link-list');
+                if (!linkList) return;
+
+                linkList.innerHTML = '';
+                
+                if (links.length === 0) {
+                    linkList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">暂无链接数据</p>';
+                    return;
+                }
+
+                const fragment = document.createDocumentFragment();
+                
+                links.forEach(link => {
+                    if (!link.url || !link.name) {
+                        console.warn('跳过无效链接:', link);
+                        return;
+                    }
+                    
+                    const linkItem = this.createLinkElement(link);
+                    fragment.appendChild(linkItem);
+                });
+
+                linkList.appendChild(fragment);
+            },
+
+            createLinkElement(link) {
                 const linkItem = document.createElement('a');
                 linkItem.href = link.url;
                 linkItem.target = '_blank';
                 linkItem.className = 'link-item';
 
-                // Create and add the favicon
-                const favicon = document.createElement('img');
-                favicon.className = 'favicon';
-                try {
-                    const domain = new URL(link.url).hostname;
-                    // 优先从本地 /icon 文件夹加载图标
-                    favicon.src = `icon/${domain}.png`;
-
-                    // 如果本地图标加载失败，则回退到从 Google 服务获取
-                    favicon.onerror = () => {
-                        favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-                        // 防止回退也失败时进入死循环
-                        favicon.onerror = null; 
-                    };
-                } catch (e) {
-                    // 如果 URL 无效，则隐藏图标
-                    favicon.style.display = 'none';
-                }
+                // 创建图标
+                const favicon = this.createFaviconElement(link.url);
                 linkItem.appendChild(favicon);
                 
+                // 创建名称
                 const nameSpan = document.createElement('span');
                 nameSpan.textContent = link.name;
+                nameSpan.title = link.name; // 添加工具提示
                 linkItem.appendChild(nameSpan);
 
-                linkList.appendChild(linkItem);
-            });
-        }
+                return linkItem;
+            },
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-        }
-
-        // 标签切换功能 - Tab Switching Functionality
-        function switchContent(targetContent) {
-            // 获取菜单项顺序映射
-            const menuOrder = {
-                'home': 0,
-                'search': 1,
-                'settings': 2
-            };
-            
-            // 获取当前活动的菜单项和内容卡片
-            const currentMenuItem = document.querySelector('.dock-item.active');
-            const currentContent = currentMenuItem ? currentMenuItem.getAttribute('data-content') : 'home';
-            const currentCard = document.getElementById(`content-${currentContent}`);
-            
-            // 如果目标内容和当前内容相同，不需要切换
-            if (currentContent === targetContent) return;
-            
-            // 比较位置决定动画方向
-            const currentIndex = menuOrder[currentContent];
-            const targetIndex = menuOrder[targetContent];
-            const isMovingRight = targetIndex > currentIndex;
-            
-            // 为当前卡片添加滑出动画
-            if (currentCard) {
-                if (isMovingRight) {
-                    currentCard.classList.add('exit-left');
+            createFaviconElement(url) {
+                const favicon = document.createElement('img');
+                favicon.className = 'favicon';
+                favicon.loading = 'lazy'; // 添加懒加载
+                
+                const domain = Utils.getDomain(url);
+                if (domain) {
+                    favicon.src = `icon/${domain}.png`;
+                    favicon.onerror = () => {
+                        favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                        favicon.onerror = () => {
+                            favicon.style.display = 'none';
+                        };
+                    };
                 } else {
-                    currentCard.classList.add('exit-right');
+                    favicon.style.display = 'none';
                 }
+                
+                return favicon;
             }
-            
-            // 移除菜单项的活动状态
-            document.querySelectorAll('.dock-item').forEach(item => {
-                item.classList.remove('active');
-            });
+        };
 
-            // 激活目标内容和菜单项
-            const targetCard = document.getElementById(`content-${targetContent}`);
-            const targetMenuItem = document.querySelector(`.dock-item[data-content="${targetContent}"]`);
+        // 主题管理 - Theme Management
+        const ThemeManager = {
+            init() {
+                // 从本地存储恢复主题设置
+                const savedTheme = localStorage.getItem('theme') || 'auto';
+                this.setTheme(savedTheme);
+                this.updateThemeUI(savedTheme);
+            },
+
+            setTheme(theme) {
+                AppState.currentTheme = theme;
+                localStorage.setItem('theme', theme);
+                
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else if (theme === 'light') {
+                    document.body.classList.remove('dark-mode');
+                } else {
+                    // Auto theme
+                    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.body.classList.toggle('dark-mode', isDarkMode);
+                }
+            },
+
+            updateThemeUI(theme) {
+                const themeOptions = document.querySelectorAll('.theme-option');
+                themeOptions.forEach(option => {
+                    option.classList.toggle('active', option.getAttribute('data-theme') === theme);
+                });
+            },
+
+            toggle() {
+                const currentTheme = AppState.currentTheme;
+                const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+                this.setTheme(nextTheme);
+                this.updateThemeUI(nextTheme);
+            }
+        };
+
+        // 内容切换管理 - Content Switching Management
+        const ContentManager = {
+            menuOrder: { 'home': 0, 'search': 1, 'settings': 2 },
             
-            if (targetCard && targetMenuItem) {
-                // 延迟显示新内容，让滑出动画先开始
+            switch(targetContent) {
+                if (AppState.currentContent === targetContent) return;
+                
+                const currentIndex = this.menuOrder[AppState.currentContent];
+                const targetIndex = this.menuOrder[targetContent];
+                const isMovingRight = targetIndex > currentIndex;
+                
+                this.animateTransition(AppState.currentContent, targetContent, isMovingRight);
+                this.updateActiveStates(targetContent);
+                
+                AppState.currentContent = targetContent;
+            },
+
+            animateTransition(currentContent, targetContent, isMovingRight) {
+                const currentCard = document.getElementById(`content-${currentContent}`);
+                const targetCard = document.getElementById(`content-${targetContent}`);
+                
+                if (!currentCard || !targetCard) return;
+                
+                // 添加退出动画
+                currentCard.classList.add(isMovingRight ? 'exit-left' : 'exit-right');
+                
                 setTimeout(() => {
-                    // 清理所有内容卡片的状态
+                    // 清理所有状态
                     document.querySelectorAll('.content-card').forEach(card => {
                         card.classList.remove('active', 'prev', 'next', 'from-right', 'from-left', 'exit-left', 'exit-right');
                     });
                     
                     // 激活目标卡片
                     targetCard.classList.add('active');
+                    targetCard.classList.add(isMovingRight ? 'from-right' : 'from-left');
                     
-                    // 根据方向添加滑入动画
-                    if (isMovingRight) {
-                        targetCard.classList.add('from-right');
-                    } else {
-                        targetCard.classList.add('from-left');
-                    }
-                    
-                    // 动画完成后清理方向类
+                    // 清理动画类
                     setTimeout(() => {
                         targetCard.classList.remove('from-right', 'from-left');
-                    }, 500);
+                    }, CONFIG.ANIMATION_DURATION);
+                    
                 }, 50);
-                
-                targetMenuItem.classList.add('active');
+            },
+
+            updateActiveStates(targetContent) {
+                // 更新菜单项状态
+                document.querySelectorAll('.dock-item').forEach(item => {
+                    const isActive = item.getAttribute('data-content') === targetContent;
+                    item.classList.toggle('active', isActive);
+                });
                 
                 // 更新气泡位置
-                moveBubbleTo(targetMenuItem);
+                const targetMenuItem = document.querySelector(`.dock-item[data-content="${targetContent}"]`);
+                if (targetMenuItem) {
+                    DockManager.moveBubbleTo(targetMenuItem);
+                }
             }
-        }
+        };
 
-        // 初始加载
-        loadLinks();
-        
-        // Liquid Dock Logic with Enhanced Effects
-        const dock = document.querySelector('.dock');
-        const bubble = document.querySelector('.dock-bubble');
-        const dockItems = document.querySelectorAll('.dock-item');
-        const activeItem = document.querySelector('.dock-item.active');
+        // 事件处理管理 - Event Handler Management
+        const EventManager = {
+            init() {
+                this.setupDockEvents();
+                this.setupSearchEvents();
+                this.setupThemeEvents();
+                this.setupKeyboardEvents();
+                this.setupGlobalEvents();
+            },
 
-        // Enhanced bubble movement with elastic easing
-        function moveBubbleTo(item) {
-            if (!item) return;
-            
-            const itemRect = item.getBoundingClientRect();
-            const dockRect = dock.getBoundingClientRect();
-            const left = itemRect.left - dockRect.left;
-            const width = itemRect.width;
+            setupDockEvents() {
+                const dockItems = document.querySelectorAll('.dock-item');
+                dockItems.forEach(item => {
+                    item.addEventListener('click', this.handleDockItemClick.bind(this));
+                    item.addEventListener('mouseenter', this.handleDockItemHover.bind(this));
+                    item.addEventListener('mouseleave', this.handleDockItemLeave.bind(this));
+                    
+                    // 触摸事件支持
+                    if ('ontouchstart' in window) {
+                        item.addEventListener('touchstart', this.handleDockItemTouch.bind(this));
+                        item.addEventListener('touchend', this.handleDockItemTouchEnd.bind(this));
+                    }
+                });
 
-            // Apply smooth transform with enhanced properties
-            bubble.style.left = `${left}px`;
-            bubble.style.width = `${width}px`;
-            bubble.style.opacity = '1';
-            bubble.style.transform = 'scale(1)';
-            
-            // Add subtle glow effect for active state
-            if (item.classList.contains('active')) {
+                const dock = document.querySelector('.dock');
+                if (dock) {
+                    dock.addEventListener('mouseenter', this.handleDockHover.bind(this));
+                    dock.addEventListener('mouseleave', this.handleDockLeave.bind(this));
+                }
+            },
+
+            setupSearchEvents() {
+                const searchInput = document.getElementById('search-input');
+                const searchButton = document.getElementById('search-btn');
+                const suggestionTags = document.querySelectorAll('.tag');
+
+                if (searchButton) {
+                    searchButton.addEventListener('click', this.handleSearch.bind(this));
+                }
+
+                if (searchInput) {
+                    searchInput.addEventListener('keypress', this.handleSearchKeyPress.bind(this));
+                    searchInput.addEventListener('input', Utils.debounce(this.handleSearchInput.bind(this), 300));
+                }
+
+                suggestionTags.forEach(tag => {
+                    tag.addEventListener('click', this.handleTagClick.bind(this));
+                });
+            },
+
+            setupThemeEvents() {
+                const themeToggle = document.querySelector('.theme-toggle');
+                const themeOptions = document.querySelectorAll('.theme-option');
+                
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        ThemeManager.toggle();
+                    });
+                }
+
+                themeOptions.forEach(option => {
+                    option.addEventListener('click', this.handleThemeOptionClick.bind(this));
+                });
+            },
+
+            setupKeyboardEvents() {
+                document.addEventListener('keydown', this.handleKeyDown.bind(this));
+            },
+
+            setupGlobalEvents() {
+                window.addEventListener('scroll', Utils.throttle(this.handleScroll.bind(this), 16));
+                window.addEventListener('resize', Utils.debounce(this.handleResize.bind(this), 250));
+                
+                // 监听系统主题变化
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', this.handleSystemThemeChange.bind(this));
+            },
+
+            // 事件处理方法
+            handleDockItemClick(e) {
+                e.preventDefault();
+                const targetContent = e.currentTarget.getAttribute('data-content');
+                ContentManager.switch(targetContent);
+            },
+
+            handleDockItemHover(e) {
+                DockManager.moveBubbleTo(e.currentTarget);
+                DockManager.addMagneticEffect(e.currentTarget);
+            },
+
+            handleDockItemLeave(e) {
+                DockManager.resetMagneticEffect();
+            },
+
+            handleDockItemTouch(e) {
+                e.preventDefault();
+                DockManager.moveBubbleTo(e.currentTarget);
+                e.currentTarget.style.transform = 'scale(0.95)';
+            },
+
+            handleDockItemTouchEnd(e) {
+                e.preventDefault();
+                e.currentTarget.style.transform = '';
+                const targetContent = e.currentTarget.getAttribute('data-content');
+                ContentManager.switch(targetContent);
+            },
+
+            handleDockHover(e) {
+                e.currentTarget.style.transform = 'translateX(-50%) translateY(-2px) scale(1.02)';
+            },
+
+            handleDockLeave(e) {
+                e.currentTarget.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+                
+                setTimeout(() => {
+                    const activeItem = document.querySelector('.dock-item.active');
+                    if (activeItem) {
+                        DockManager.moveBubbleTo(activeItem);
+                    }
+                    DockManager.resetMagneticEffect();
+                }, 150);
+            },
+
+            async handleSearch() {
+                const searchInput = document.getElementById('search-input');
+                const searchButton = document.getElementById('search-btn');
+                const query = searchInput?.value.trim();
+                
+                if (!query) {
+                    ErrorManager.show('请输入搜索内容', 'warning', 2000);
+                    return;
+                }
+
+                try {
+                    this.setSearchLoading(true);
+                    await Utils.delay(500); // 模拟搜索延迟
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                } catch (error) {
+                    ErrorManager.show('搜索失败，请重试', 'error');
+                } finally {
+                    this.setSearchLoading(false);
+                }
+            },
+
+            handleSearchKeyPress(e) {
+                if (e.key === 'Enter') {
+                    this.handleSearch();
+                }
+            },
+
+            handleSearchInput(e) {
+                // 可以在这里添加搜索建议逻辑
+                const query = e.target.value.trim();
+                console.log('搜索输入:', query);
+            },
+
+            handleTagClick(e) {
+                const query = e.target.textContent;
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            },
+
+            handleThemeOptionClick(e) {
+                const theme = e.currentTarget.getAttribute('data-theme');
+                ThemeManager.setTheme(theme);
+                ThemeManager.updateThemeUI(theme);
+            },
+
+            handleKeyDown(e) {
+                // 键盘快捷键
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case '1':
+                            e.preventDefault();
+                            ContentManager.switch('home');
+                            break;
+                        case '2':
+                            e.preventDefault();
+                            ContentManager.switch('search');
+                            break;
+                        case '3':
+                            e.preventDefault();
+                            ContentManager.switch('settings');
+                            break;
+                        case 'd':
+                            e.preventDefault();
+                            ThemeManager.toggle();
+                            break;
+                    }
+                }
+                
+                // ESC 键隐藏错误提示
+                if (e.key === 'Escape') {
+                    ErrorManager.hide();
+                }
+            },
+
+            handleScroll() {
+                const scrolled = window.pageYOffset;
+                const parallax = scrolled * CONFIG.PARALLAX_FACTOR;
+                const dock = document.querySelector('.dock');
+                if (dock) {
+                    dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
+                }
+            },
+
+            handleResize() {
+                // 响应式处理
+                console.log('窗口大小改变');
+            },
+
+            handleSystemThemeChange(e) {
+                if (AppState.currentTheme === 'auto') {
+                    document.body.classList.toggle('dark-mode', e.matches);
+                }
+            },
+
+            setSearchLoading(isLoading) {
+                const searchIcon = document.querySelector('.search-icon');
+                const searchLoading = document.querySelector('.search-loading');
+                const searchButton = document.getElementById('search-btn');
+                
+                if (searchIcon && searchLoading && searchButton) {
+                    searchIcon.style.display = isLoading ? 'none' : 'inline';
+                    searchLoading.style.display = isLoading ? 'inline' : 'none';
+                    searchButton.disabled = isLoading;
+                }
+            }
+        };
+        // Dock管理 - Dock Management
+        const DockManager = {
+            init() {
+                const activeItem = document.querySelector('.dock-item.active');
+                if (activeItem) {
+                    setTimeout(() => this.moveBubbleTo(activeItem), 100);
+                }
+            },
+
+            moveBubbleTo(item) {
+                if (!item) return;
+                
+                const bubble = document.querySelector('.dock-bubble');
+                const dock = document.querySelector('.dock');
+                if (!bubble || !dock) return;
+                
+                const itemRect = item.getBoundingClientRect();
+                const dockRect = dock.getBoundingClientRect();
+                const left = itemRect.left - dockRect.left;
+                const width = itemRect.width;
+
+                bubble.style.left = `${left}px`;
+                bubble.style.width = `${width}px`;
+                bubble.style.opacity = '1';
+                bubble.style.transform = 'scale(1)';
+                
+                // 添加发光效果
                 const isDarkMode = document.body.classList.contains('dark-mode');
                 const glowColor = isDarkMode ? 'rgba(10, 132, 255, 0.2)' : 'rgba(0, 113, 227, 0.15)';
-                bubble.style.boxShadow = `
-                    0 4px 16px rgba(0, 0, 0, 0.1),
-                    inset 0 1px 1px rgba(255, 255, 255, 0.3),
-                    0 0 20px ${glowColor}
-                `;
-            } else {
-                bubble.style.boxShadow = `
-                    0 4px 16px rgba(0, 0, 0, 0.1),
-                    inset 0 1px 1px rgba(255, 255, 255, 0.3)
-                `;
-            }
-        }
-
-        // Hide bubble with smooth transition
-        function hideBubble() {
-            bubble.style.opacity = '0';
-            bubble.style.transform = 'scale(0.9)';
-        }
-
-        // Set initial position for the bubble on the active item
-        if (activeItem) {
-            setTimeout(() => {
-                moveBubbleTo(activeItem);
-            }, 100);
-        }
-
-        // Enhanced hover effects with magnetic attraction
-        dockItems.forEach((item, index) => {
-            // 添加点击事件处理
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetContent = item.getAttribute('data-content');
-                switchContent(targetContent);
-            });
-
-            item.addEventListener('mouseenter', (e) => {
-                moveBubbleTo(item);
                 
-                // Add magnetic effect to neighboring items
-                dockItems.forEach((otherItem, otherIndex) => {
-                    const distance = Math.abs(index - otherIndex);
+                if (item.classList.contains('active')) {
+                    bubble.style.boxShadow = `
+                        0 4px 16px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.3),
+                        0 0 20px ${glowColor}
+                    `;
+                } else {
+                    bubble.style.boxShadow = `
+                        0 4px 16px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.3)
+                    `;
+                }
+            },
+
+            addMagneticEffect(hoveredItem) {
+                const dockItems = document.querySelectorAll('.dock-item');
+                const hoveredIndex = Array.from(dockItems).indexOf(hoveredItem);
+                
+                dockItems.forEach((item, index) => {
+                    const distance = Math.abs(index - hoveredIndex);
                     if (distance === 1) {
-                        // Slight attraction for adjacent items
-                        otherItem.style.transform = index > otherIndex 
-                            ? 'translateX(2px) scale(1.02)' 
-                            : 'translateX(-2px) scale(1.02)';
+                        const direction = index < hoveredIndex ? 2 : -2;
+                        item.style.transform = `translateX(${direction}px) scale(1.02)`;
                     } else if (distance > 1) {
-                        // Reset for distant items
-                        otherItem.style.transform = '';
+                        item.style.transform = '';
                     }
                 });
-            });
+            },
 
-            item.addEventListener('mouseleave', () => {
-                // Reset all transforms
-                dockItems.forEach(otherItem => {
-                    otherItem.style.transform = '';
-                });
-            });
-
-            // Enhanced click effect
-            item.addEventListener('mousedown', () => {
-                item.style.transform = 'translateY(1px) scale(0.95)';
-                bubble.style.transform = 'scale(0.95)';
-            });
-
-            item.addEventListener('mouseup', () => {
-                item.style.transform = '';
-                bubble.style.transform = 'scale(1)';
-            });
-        });
-
-        // Improved dock hover behavior
-        dock.addEventListener('mouseenter', () => {
-            dock.style.transform = 'translateX(-50%) translateY(-2px) scale(1.02)';
-        });
-
-        dock.addEventListener('mouseleave', () => {
-            dock.style.transform = 'translateX(-50%) translateY(0) scale(1)';
-            
-            // Return bubble to active item with delay for better UX
-            setTimeout(() => {
-                const currentActiveItem = document.querySelector('.dock-item.active');
-                if (currentActiveItem) {
-                    moveBubbleTo(currentActiveItem);
-                } else {
-                    hideBubble();
-                }
-                
-                // Reset all item transforms
-                dockItems.forEach(item => {
+            resetMagneticEffect() {
+                document.querySelectorAll('.dock-item').forEach(item => {
                     item.style.transform = '';
                 });
-            }, 150);
-        });
+            },
 
-        // Add subtle parallax effect on scroll
-        let ticking = false;
-        function updateDockParallax() {
-            const scrolled = window.pageYOffset;
-            const parallax = scrolled * 0.02; // Subtle effect
-            
-            dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
-            ticking = false;
-        }
-
-        function requestTick() {
-            if (!ticking) {
-                requestAnimationFrame(updateDockParallax);
-                ticking = true;
+            hide() {
+                const bubble = document.querySelector('.dock-bubble');
+                if (bubble) {
+                    bubble.style.opacity = '0';
+                    bubble.style.transform = 'scale(0.9)';
+                }
             }
-        }
+        };
 
-        window.addEventListener('scroll', requestTick);
-
-        // Add touch support for mobile devices
-        if ('ontouchstart' in window) {
-            dockItems.forEach(item => {
-                item.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    moveBubbleTo(item);
-                    item.style.transform = 'scale(0.95)';
-                });
-
-                item.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    item.style.transform = '';
-                    // Simulate click
-                    const targetContent = item.getAttribute('data-content');
-                    switchContent(targetContent);
-                });
-            });
-        }
-
-        // 搜索功能 - Search Functionality
-        const searchInput = document.getElementById('search-input');
-        const searchButton = document.querySelector('.search-button');
-        const suggestionTags = document.querySelectorAll('.tag');
-
-        if (searchButton) {
-            searchButton.addEventListener('click', () => {
-                const query = searchInput.value.trim();
-                if (query) {
-                    // 在新标签页中打开Google搜索
-                    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+        // 应用初始化 - Application Initialization
+        const App = {
+            async init() {
+                try {
+                    LoadingManager.show('正在初始化应用...');
+                    
+                    // 预加载关键资源
+                    this.preloadResources();
+                    
+                    // 初始化各个管理器
+                    ThemeManager.init();
+                    DockManager.init();
+                    EventManager.init();
+                    
+                    // 加载链接数据
+                    await LinkManager.load();
+                    
+                    // 性能优化：预加载图标
+                    this.preloadIcons();
+                    
+                    // 初始化完成
+                    LoadingManager.hide();
+                    
+                    // 显示使用提示（仅首次访问）
+                    this.showFirstTimeHints();
+                    
+                } catch (error) {
+                    console.error('应用初始化失败:', error);
+                    LoadingManager.hide();
+                    ErrorManager.show('应用初始化失败，请刷新页面重试', 'error');
                 }
-            });
-        }
+            },
 
-        if (searchInput) {
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    searchButton.click();
-                }
-            });
-        }
-
-        // 标签点击搜索
-        suggestionTags.forEach(tag => {
-            tag.addEventListener('click', () => {
-                const query = tag.textContent;
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-            });
-        });
-
-        // 设置功能 - Settings Functionality
-        const themeOptions = document.querySelectorAll('.theme-option');
-
-        // 主题切换
-        themeOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                themeOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
+            preloadResources() {
+                // 预加载关键CSS和字体
+                const criticalResources = [
+                    'styles/variables.css',
+                    'styles/base.css'
+                ];
                 
-                const theme = option.getAttribute('data-theme');
-                if (theme === 'dark') {
-                    document.body.classList.add('dark-mode');
-                } else if (theme === 'light') {
-                    document.body.classList.remove('dark-mode');
-                } else {
-                    // Auto theme - 可以根据系统主题或时间来决定
-                    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    if (isDarkMode) {
-                        document.body.classList.add('dark-mode');
-                    } else {
-                        document.body.classList.remove('dark-mode');
-                    }
+                criticalResources.forEach(href => {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'style';
+                    link.href = href;
+                    document.head.appendChild(link);
+                });
+            },
+
+            preloadIcons() {
+                // 预加载常用域名的图标
+                const commonDomains = [
+                    'google.com', 'github.com', 'baidu.com', 
+                    'apple.com.cn', 'microsoft.com'
+                ];
+                
+                commonDomains.forEach(domain => {
+                    const img = new Image();
+                    img.src = `icon/${domain}.png`;
+                    img.onerror = () => {
+                        // 如果本地图标不存在，预加载Google图标
+                        const fallbackImg = new Image();
+                        fallbackImg.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                    };
+                });
+            },
+
+            showFirstTimeHints() {
+                const hasVisited = localStorage.getItem('hasVisited');
+                if (!hasVisited) {
+                    setTimeout(() => {
+                        ErrorManager.show('💡 提示：使用 Ctrl/Cmd + 1/2/3 快速切换页面，Ctrl/Cmd + D 切换主题', 'success', 8000);
+                        localStorage.setItem('hasVisited', 'true');
+                    }, 2000);
                 }
-            });
+            }
+        };
+
+        // 页面加载完成后初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
         });
+
+        // 兼容旧版本的全局函数
+        window.toggleTheme = () => ThemeManager.toggle();
+        window.switchContent = (content) => ContentManager.switch(content);
     </script>
 </body>
 </html>
