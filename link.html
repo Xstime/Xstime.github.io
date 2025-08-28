@@ -378,22 +378,55 @@
                 const searchButton = document.getElementById('main-search-btn');
                 if (!searchIcon || !searchButton) return;
                 
+                // 清空当前内容
+                searchIcon.innerHTML = '';
+                
                 switch (engine) {
                     case 'google':
-                        // 使用Google的G图标，多个备选方案
-                        searchIcon.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=google.com&sz=16" alt="Google" style="width: 16px; height: 16px;" 
-                            onerror="this.src='https://www.google.com/favicon.ico'; this.onerror=function(){this.outerHTML='G';}">`;
-                        searchButton.title = '使用 Google 搜索';
+                        // 创建Google图标
+                        const googleImg = document.createElement('img');
+                        googleImg.setAttribute('src', 'https://www.google.com/s2/favicons?domain=google.com&sz=16');
+                        googleImg.setAttribute('alt', 'Google');
+                        googleImg.setAttribute('style', 'width: 16px; height: 16px;');
+                        
+                        // 设置错误处理
+                        googleImg.addEventListener('error', function() {
+                            if (this.src.indexOf('s2/favicons') > -1) {
+                                this.src = 'https://www.google.com/favicon.ico';
+                            } else {
+                                const textNode = document.createTextNode('G');
+                                this.parentNode.replaceChild(textNode, this);
+                            }
+                        });
+                        
+                        searchIcon.appendChild(googleImg);
+                        searchButton.setAttribute('title', '使用 Google 搜索');
                         break;
+                        
                     case 'baidu':
-                        // 使用百度的图标，多个备选方案
-                        searchIcon.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=baidu.com&sz=16" alt="百度" style="width: 16px; height: 16px;" 
-                            onerror="this.src='https://www.baidu.com/favicon.ico'; this.onerror=function(){this.outerHTML='百';}">`;
-                        searchButton.title = '使用百度搜索';
+                        // 创建百度图标
+                        const baiduImg = document.createElement('img');
+                        baiduImg.setAttribute('src', 'https://www.google.com/s2/favicons?domain=baidu.com&sz=16');
+                        baiduImg.setAttribute('alt', '百度');
+                        baiduImg.setAttribute('style', 'width: 16px; height: 16px;');
+                        
+                        // 设置错误处理
+                        baiduImg.addEventListener('error', function() {
+                            if (this.src.indexOf('s2/favicons') > -1) {
+                                this.src = 'https://www.baidu.com/favicon.ico';
+                            } else {
+                                const textNode = document.createTextNode('百');
+                                this.parentNode.replaceChild(textNode, this);
+                            }
+                        });
+                        
+                        searchIcon.appendChild(baiduImg);
+                        searchButton.setAttribute('title', '使用百度搜索');
                         break;
+                        
                     default:
                         searchIcon.textContent = '🔍';
-                        searchButton.title = '搜索';
+                        searchButton.setAttribute('title', '搜索');
                 }
             },
             
