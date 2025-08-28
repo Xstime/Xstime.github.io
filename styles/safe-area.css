@@ -1,0 +1,62 @@
+/* Safe Area Styles - 安全区域特殊样式 */
+
+/* 强制覆盖iPhone等设备的安全区域背景色 */
+html {
+    background: var(--bg-color) !important;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+body {
+    background: var(--bg-color) !important;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+/* 专门为暗黑主题强制设置背景色 */
+body.dark-mode html {
+    background: #1d1d1f !important;
+}
+
+body.dark-mode body {
+    background: #1d1d1f !important;
+}
+
+/* 在支持安全区域的设备上添加额外保障 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    html {
+        background: var(--bg-color) !important;
+        height: 100%;
+    }
+    
+    body {
+        background: var(--bg-color) !important;
+        height: 100%;
+    }
+    
+    /* 为暗黑主题特别强制设置 */
+    body.dark-mode html {
+        background: #1d1d1f !important;
+    }
+    
+    body.dark-mode {
+        background: #1d1d1f !important;
+    }
+    
+    /* 创建底部安全区域覆盖层 */
+    body::after {
+        content: '';
+        position: fixed;
+        bottom: calc(-1 * env(safe-area-inset-bottom, 0));
+        left: 0;
+        right: 0;
+        height: calc(env(safe-area-inset-bottom, 0) + 10px);
+        background: var(--bg-color);
+        z-index: -1;
+        transition: background-color 0.4s;
+    }
+    
+    body.dark-mode::after {
+        background: #1d1d1f;
+    }
+}

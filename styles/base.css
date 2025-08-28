@@ -5,6 +5,10 @@
 
 html {
     overflow-x: hidden;
+    /* 确保HTML根元素背景色覆盖整个视口包括安全区域 */
+    background: var(--bg-color);
+    transition: background-color 0.4s;
+    height: 100%;
 }
 
 html, body {
@@ -18,22 +22,35 @@ html, body {
     width: 100%;
     /* 添加安全区域支持 */
     padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
 }
 
-/* 确保安全区域也有正确的背景色 */
-html {
-    background: var(--bg-color);
-    transition: background-color 0.4s;
-}
-
-/* 在支持安全区域的设备上，为整个页面添加底部安全区域背景 */
-@supports (padding: max(0px)) {
+/* 专门为移动设备安全区域添加背景色覆盖 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    html {
+        background: var(--bg-color);
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+    
     body {
-        background: linear-gradient(
-            to bottom,
-            var(--bg-color) calc(100vh - env(safe-area-inset-bottom)),
-            var(--bg-color) 100%
-        );
+        background: var(--bg-color);
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+    
+    /* 创建一个伪元素来确保安全区域背景色 */
+    body::after {
+        content: '';
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: env(safe-area-inset-bottom);
+        background: var(--bg-color);
+        z-index: -1;
+        transition: background-color 0.4s;
     }
 }
 
