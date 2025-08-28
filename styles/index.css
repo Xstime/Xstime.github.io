@@ -1,0 +1,32 @@
+/* Index-specific styles - index.html 特定样式 */
+
+/* Back to top button */
+#back-to-top {
+    position: fixed;
+    left: 30px;
+    bottom: 40px;
+    z-index: 1001;
+    display: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 20px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Index page specific layout adjustments */
+header {
+    min-height: 100vh;
+}
+
+h1 {
+    font-size: 3rem;
+    margin: 0;
+}
+
+p {
+    font-size: 1.25rem;
+    margin: 20px 0 40px;
+}

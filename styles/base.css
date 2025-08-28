@@ -1,0 +1,77 @@
+/* Base Styles - 基础样式 */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+    transition: background-color 0.4s, color 0.4s;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: var(--text-color);
+    font-size: 40px;
+    margin-bottom: 40px;
+    transition: color .3s;
+}
+
+h1.main-title {
+    display: inline-block;
+    line-height: 1.2;
+    padding: 0;
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+h1.main-title:hover {
+    color: var(--accent-color);
+}
+
+p {
+    font-size: 1.25rem;
+    margin: 20px 0 40px;
+}
+
+/* Container Styles */
+.container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--container-bg);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.main-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 100px;
+    box-sizing: border-box;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .main-container {
+        padding-bottom: 85px;
+    }
+}

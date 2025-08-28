@@ -4,692 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>由此出发🛫</title>
-    <link rel="icon" type="image/png" href="touxiang.png">
-    <style>
-        :root {
-            --bg-color: #f5f5f7;
-            --text-color: #1d1d1f;
-            --accent-color: #0071e3;
-            --container-bg: rgba(255, 255, 255, 0.8);
-            --input-bg: rgba(255, 255, 255, 0.5);
-            --button-bg: rgba(0, 113, 227, 0.8);
-            --button-hover-bg: rgba(0, 113, 227, 1);
-            --delete-bg: rgba(255, 59, 48, 0.8);
-            --delete-hover-bg: rgba(255, 59, 48, 1);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
-            --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.15);
-            --accent-glow: rgba(0, 113, 227, 0.15);
-        }
-
-        body.dark-mode {
-            --bg-color: #1d1d1f;
-            --text-color: #f5f5f7;
-            --accent-color: #0a84ff;
-            --container-bg: rgba(0, 0, 0, 0.5);
-            --input-bg: rgba(0, 0, 0, 0.3);
-            --button-bg: rgba(10, 132, 255, 0.8);
-            --button-hover-bg: rgba(10, 132, 255, 1);
-            --delete-bg: rgba(255, 69, 58, 0.8);
-            --delete-hover-bg: rgba(255, 69, 58, 1);
-            --glass-bg: rgba(0, 0, 0, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
-            --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.08);
-            --accent-glow: rgba(10, 132, 255, 0.2);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            overflow-x: hidden;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            transition: background-color 0.4s, color 0.4s;
-            overflow-x: hidden;
-            width: 100%;
-        }
-
-        /* 主内容容器 - Main Content Container */
-        .main-container {
-            position: relative;
-            width: 100%;
-            min-height: 100vh;
-            padding-bottom: 100px;
-            box-sizing: border-box;
-        }
-
-        /* 内容卡片基础样式 - Content Card Base Styles */
-        .content-card {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            min-height: 100vh;
-            opacity: 0;
-            transform: translateX(100px);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            pointer-events: none;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .content-card.active {
-            opacity: 1;
-            transform: translateX(0);
-            pointer-events: all;
-        }
-
-        .content-card.prev {
-            transform: translateX(-100px);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: var(--container-bg);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--text-color);
-            font-size: 40px;
-            margin-bottom: 40px;
-            transition: color .3s;
-        }
-        h1:hover {
-            color: var(--accent-color);
-        }
-
-        .add-link-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .add-link-form input {
-            flex-grow: 1;
-            padding: 12px;
-            border: 1px solid transparent;
-            border-radius: 12px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 18px;
-            outline: none;
-            transition: border-color 0.3s, background-color 0.3s;
-        }
-
-        .add-link-form input:focus {
-            border-color: var(--accent-color);
-        }
-
-        .add-link-form button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            background-color: var(--button-bg);
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .add-link-form button:hover {
-            background-color: var(--button-hover-bg);
-        }
-
-        #link-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        @media (max-width: 768px) {
-            #link-list {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 15px;
-            }
-            .container {
-                padding: 15px;
-            }
-            .fixed-button {
-                background-color: transparent;
-            }
-        }
-
-        .link-item {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-            background-color: var(--input-bg);
-            border-radius: 16px;
-            text-decoration: none;
-            color: var(--text-color);
-            transition: transform 0.2s, box-shadow 0.2s;
-            aspect-ratio: 4 / 3;
-            text-align: center;
-        }
-
-        .link-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        .link-item .favicon {
-            width: 40px;
-            height: 40px;
-            margin-right: 0;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
-
-        .link-item span {
-            flex-grow: 0;
-            white-space: normal;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2; /* Limit to 2 lines */
-            line-clamp: 2; /* Standard property for compatibility */
-            -webkit-box-orient: vertical;
-            line-height: 1.3;
-        }
-
-        .delete-btn {
-            background-color: var(--delete-bg);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            font-size: 14px;
-            line-height: 24px;
-            text-align: center;
-            cursor: pointer;
-            margin-left: 10px;
-            flex-shrink: 0;
-            transition: background-color 0.3s;
-        }
-
-        .delete-btn:hover {
-            background-color: var(--delete-hover-bg);
-        }
-        
-        .fixed-button {
-            position: fixed;
-            z-index: 100;
-            background: var(--input-bg);
-            border: 1px solid transparent;
-            border-radius: 50%; /* Make it circular */
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--text-color);
-            font-size: 20px;
-            line-height: 40px; /* Center icon vertically */
-            text-align: center; /* Center icon horizontally */
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .fixed-button:hover {
-            background-color: rgba(0,0,0,0.1);
-        }
-
-        body.dark-mode .fixed-button:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-
-        .back-button {
-            top: 20px;
-            left: 20px;
-        }
-
-        .theme-toggle {
-            top: 20px;
-            right: 20px;
-        }
-
-        .router-button {
-            top: 70px; /* 20px (top) + 40px (height) + 10px (gap) */
-            right: 20px;
-        }
-
-        .dock {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow), var(--glass-inset);
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-width: calc(100vw - 40px);
-            width: auto;
-            white-space: nowrap;
-        }
-
-        .dock-bubble {
-            position: absolute;
-            top: 4px;
-            left: 0;
-            width: 60px;
-            height: calc(100% - 8px);
-            background: linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.2) 0%,
-                rgba(255, 255, 255, 0.05) 50%,
-                rgba(255, 255, 255, 0.1) 100%
-            );
-            border-radius: 20px;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            z-index: 0;
-            box-shadow: 
-                0 4px 16px rgba(0, 0, 0, 0.1),
-                inset 0 1px 1px rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transform: scale(0.9);
-        }
-
-        body.dark-mode .dock-bubble {
-            background: linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.1) 0%,
-                rgba(255, 255, 255, 0.02) 50%,
-                rgba(255, 255, 255, 0.05) 100%
-            );
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 
-                0 4px 16px rgba(0, 0, 0, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.1);
-        }
-
-        .dock-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: var(--text-color);
-            padding: 8px 14px;
-            border-radius: 18px;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            text-align: center;
-            transform-origin: bottom center;
-            z-index: 1;
-            position: relative;
-            min-width: 60px;
-        }
-
-        .dock-item:hover {
-            transform: translateY(-2px) scale(1.05);
-            color: var(--accent-color);
-        }
-
-        .dock-item:active {
-            transform: translateY(0) scale(0.98);
-            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .dock-item.active {
-            color: var(--accent-color);
-            text-shadow: 0 0 8px rgba(0, 113, 227, 0.3);
-        }
-
-        body.dark-mode .dock-item.active {
-            text-shadow: 0 0 8px rgba(10, 132, 255, 0.4);
-        }
-
-        .dock-icon {
-            font-size: 22px;
-            margin-bottom: 2px;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .dock-label {
-            font-size: 11px;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0.9;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .dock-item:hover .dock-icon {
-            transform: scale(1.1);
-        }
-
-        .dock-item:hover .dock-label {
-            opacity: 1;
-            transform: translateY(-1px);
-        }
-
-        /* Enhanced glass morphism effects */
-        .dock::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.1) 0%,
-                rgba(255, 255, 255, 0.02) 50%,
-                rgba(255, 255, 255, 0.05) 100%
-            );
-            border-radius: 24px;
-            z-index: -1;
-        }
-
-        body.dark-mode .dock::before {
-            background: linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.05) 0%,
-                rgba(255, 255, 255, 0.01) 50%,
-                rgba(255, 255, 255, 0.02) 100%
-            );
-        }
-
-        /* Improved Safari compatibility */
-        @supports (-webkit-backdrop-filter: blur(20px)) {
-            .dock {
-                -webkit-backdrop-filter: blur(20px) saturate(180%);
-                backdrop-filter: blur(20px) saturate(180%);
-            }
-        }
-
-        /* Safari-specific optimizations */
-        @media screen and (-webkit-min-device-pixel-ratio: 0) {
-            .dock {
-                -webkit-transform: translateX(-50%);
-                transform: translateX(-50%);
-                -webkit-backface-visibility: hidden;
-                backface-visibility: hidden;
-                -webkit-perspective: 1000px;
-                perspective: 1000px;
-            }
-            
-            .dock-bubble {
-                -webkit-transform: scale(0.9);
-                transform: scale(0.9);
-                -webkit-backface-visibility: hidden;
-                backface-visibility: hidden;
-            }
-            
-            .dock-item {
-                -webkit-transform-origin: bottom center;
-                transform-origin: bottom center;
-                -webkit-backface-visibility: hidden;
-                backface-visibility: hidden;
-            }
-        }
-
-        /* Enhanced performance for Safari */
-        .dock, .dock-bubble, .dock-item {
-            will-change: transform, opacity;
-            -webkit-transform-style: preserve-3d;
-            transform-style: preserve-3d;
-        }
-
-        /* 搜索页面样式 - Search Page Styles */
-        .search-content {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 40px;
-            align-items: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 16px 20px;
-            border: 1px solid transparent;
-            border-radius: 25px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
-        }
-
-        .search-button {
-            padding: 16px 20px;
-            border: none;
-            border-radius: 25px;
-            background-color: var(--button-bg);
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-button:hover {
-            background-color: var(--button-hover-bg);
-            transform: scale(1.05);
-        }
-
-        .search-suggestions, .quick-access {
-            margin-bottom: 30px;
-        }
-
-        .search-suggestions h3, .quick-access h3 {
-            margin-bottom: 15px;
-            color: var(--text-color);
-            font-size: 18px;
-        }
-
-        .suggestion-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .tag {
-            padding: 8px 16px;
-            background-color: var(--input-bg);
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .tag:hover {
-            background-color: var(--accent-color);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .quick-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .quick-link {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            background-color: var(--input-bg);
-            border-radius: 16px;
-            text-decoration: none;
-            color: var(--text-color);
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .quick-link:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .quick-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-
-        /* 设置页面样式 - Settings Page Styles */
-        .settings-content {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .settings-section {
-            margin-bottom: 30px;
-            padding: 25px;
-            background-color: var(--input-bg);
-            border-radius: 16px;
-        }
-
-        .settings-section h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: var(--text-color);
-            font-size: 20px;
-        }
-
-        .setting-item {
-            margin-bottom: 20px;
-        }
-
-        .setting-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .setting-item label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .theme-selector {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .theme-option {
-            padding: 10px 16px;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            background-color: var(--container-bg);
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .theme-option:hover {
-            border-color: var(--accent-color);
-        }
-
-        .theme-option.active {
-            border-color: var(--accent-color);
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .dock {
-                bottom: 15px;
-                padding: 6px 10px;
-                gap: 6px;
-            }
-            
-            .dock-item {
-                padding: 6px 10px;
-                min-width: 50px;
-            }
-            
-            .dock-icon {
-                font-size: 20px;
-            }
-            
-            .dock-label {
-                font-size: 10px;
-            }
-            
-            .dock-bubble {
-                width: 50px;
-            }
-
-            .main-container {
-                padding-bottom: 85px; /* Smaller dock space on mobile */
-            }
-
-            .container {
-                margin: 0 10px;
-                padding: 15px;
-            }
-
-            .content-card {
-                padding: 10px;
-            }
-
-            .search-box {
-                flex-direction: column;
-            }
-
-            .quick-links {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .theme-selector {
-                flex-direction: column;
-            }
-        }
-    </style>
+    <link rel="icon" type="image/png" href="touxiang.png">   
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/link.css">
 </head>
 <body>
 
@@ -703,7 +24,7 @@
         <!-- 内容卡片1：由此出发 - Content Card 1: Launch Pad -->
         <div id="content-home" class="content-card active">
             <div class="container">
-                <h1>由此出发</h1>
+                <h1 class="main-title">由此出发</h1>
                 <div id="link-list"></div>
             </div>
         </div>
@@ -711,40 +32,44 @@
         <!-- 内容卡片2：搜索发现 - Content Card 2: Search & Discovery -->
         <div id="content-search" class="content-card">
             <div class="container">
-                <h1>搜索发现</h1>
+                <h1>学术资源</h1>
                 <div class="search-content">
                     <div class="search-box">
-                        <input type="text" id="search-input" placeholder="搜索网站、工具或服务..." class="search-input">
+                        <input type="text" id="search-input" placeholder="搜索学术数据库、论文或工具..." class="search-input">
                         <button class="search-button">🔍</button>
                     </div>
                     <div class="search-suggestions">
-                        <h3>热门搜索</h3>
+                        <h3>常用学术标签</h3>
                         <div class="suggestion-tags">
-                            <span class="tag">开发工具</span>
-                            <span class="tag">设计资源</span>
-                            <span class="tag">学习平台</span>
-                            <span class="tag">效率软件</span>
-                            <span class="tag">娱乐休闲</span>
+                            <span class="tag">论文检索</span>
+                            <span class="tag">学术数据库</span>
+                            <span class="tag">文献管理</span>
+                            <span class="tag">学术写作</span>
+                            <span class="tag">开源期刊</span>
                         </div>
                     </div>
                     <div class="quick-access">
                         <h3>快速访问</h3>
                         <div class="quick-links">
-                            <a href="https://www.google.com" target="_blank" class="quick-link">
-                                <span class="quick-icon">🌐</span>
-                                <span>Google 搜索</span>
+                            <a href="https://scholar.google.com" target="_blank" class="quick-link">
+                                <img src="icon/scholar.google.com.png" alt="Google Scholar" class="quick-icon" 
+                                     onerror="this.src='https://www.google.com/s2/favicons?domain=scholar.google.com&sz=32'">
+                                <span>Google Scholar</span>
                             </a>
-                            <a href="https://github.com" target="_blank" class="quick-link">
-                                <span class="quick-icon">💻</span>
-                                <span>GitHub</span>
+                            <a href="https://www.cnki.net" target="_blank" class="quick-link">
+                                <img src="icon/www.cnki.net.png" alt="中国知网" class="quick-icon"
+                                    onerror="this.src='https://www.google.com/s2/favicons?domain=www.cnki.net&sz=32'">
+                                <span>中国知网</span>
                             </a>
-                            <a href="https://stackoverflow.com" target="_blank" class="quick-link">
-                                <span class="quick-icon">📚</span>
-                                <span>Stack Overflow</span>
+                            <a href="https://www.webofscience.com" target="_blank" class="quick-link">
+                                <img src="icon/www.webofscience.com.png" alt="Web of Science" class="quick-icon" 
+                                     onerror="this.src='https://www.google.com/s2/favicons?domain=www.webofscience.com&sz=32'">
+                                <span>Web of Science</span>
                             </a>
-                            <a href="https://www.youtube.com" target="_blank" class="quick-link">
-                                <span class="quick-icon">📺</span>
-                                <span>YouTube</span>
+                            <a href="https://www.wanfangdata.com.cn" target="_blank" class="quick-link">
+                                <img src="icon/www.wanfangdata.com.cn.png" alt="万方数据" class="quick-icon"
+                                     onerror="this.src='https://www.google.com/s2/favicons?domain=www.wanfangdata.com.cn&sz=32'">
+                                <span>万方数据</span>
                             </a>
                         </div>
                     </div>
@@ -780,8 +105,8 @@
             <span class="dock-label">主页</span>
         </a>
         <a href="#" class="dock-item" data-content="search">
-            <span class="dock-icon">🔍</span>
-            <span class="dock-label">搜索</span>
+            <span class="dock-icon">👨‍🎓</span>
+            <span class="dock-label">学术</span>
         </a>
         <a href="#" class="dock-item" data-content="settings">
             <span class="dock-icon">⚙️</span>
@@ -865,11 +190,36 @@
 
         // 标签切换功能 - Tab Switching Functionality
         function switchContent(targetContent) {
-            // 移除所有活动状态
-            document.querySelectorAll('.content-card').forEach(card => {
-                card.classList.remove('active', 'prev');
-            });
+            // 获取菜单项顺序映射
+            const menuOrder = {
+                'home': 0,
+                'search': 1,
+                'settings': 2
+            };
             
+            // 获取当前活动的菜单项和内容卡片
+            const currentMenuItem = document.querySelector('.dock-item.active');
+            const currentContent = currentMenuItem ? currentMenuItem.getAttribute('data-content') : 'home';
+            const currentCard = document.getElementById(`content-${currentContent}`);
+            
+            // 如果目标内容和当前内容相同，不需要切换
+            if (currentContent === targetContent) return;
+            
+            // 比较位置决定动画方向
+            const currentIndex = menuOrder[currentContent];
+            const targetIndex = menuOrder[targetContent];
+            const isMovingRight = targetIndex > currentIndex;
+            
+            // 为当前卡片添加滑出动画
+            if (currentCard) {
+                if (isMovingRight) {
+                    currentCard.classList.add('exit-left');
+                } else {
+                    currentCard.classList.add('exit-right');
+                }
+            }
+            
+            // 移除菜单项的活动状态
             document.querySelectorAll('.dock-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -879,7 +229,29 @@
             const targetMenuItem = document.querySelector(`.dock-item[data-content="${targetContent}"]`);
             
             if (targetCard && targetMenuItem) {
-                targetCard.classList.add('active');
+                // 延迟显示新内容，让滑出动画先开始
+                setTimeout(() => {
+                    // 清理所有内容卡片的状态
+                    document.querySelectorAll('.content-card').forEach(card => {
+                        card.classList.remove('active', 'prev', 'next', 'from-right', 'from-left', 'exit-left', 'exit-right');
+                    });
+                    
+                    // 激活目标卡片
+                    targetCard.classList.add('active');
+                    
+                    // 根据方向添加滑入动画
+                    if (isMovingRight) {
+                        targetCard.classList.add('from-right');
+                    } else {
+                        targetCard.classList.add('from-left');
+                    }
+                    
+                    // 动画完成后清理方向类
+                    setTimeout(() => {
+                        targetCard.classList.remove('from-right', 'from-left');
+                    }, 500);
+                }, 50);
+                
                 targetMenuItem.classList.add('active');
                 
                 // 更新气泡位置

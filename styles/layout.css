@@ -1,0 +1,284 @@
+/* Layout Styles - 布局样式 */
+
+/* Grid Layouts */
+#link-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    width: 100%;
+    overflow: visible;
+    padding: 10px;
+    margin: -10px;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    width: 100%;
+    overflow: visible;
+    padding: 10px;
+    margin: -10px;
+}
+
+.suggestion-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Content Cards */
+.content-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
+    opacity: 0;
+    transform: translateX(100px);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    pointer-events: none;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.content-card.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+}
+
+.content-card.active.from-right {
+    animation: slideFromRight 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.content-card.active.from-left {
+    animation: slideFromLeft 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.content-card.exit-left {
+    animation: slideExitLeft 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.content-card.exit-right {
+    animation: slideExitRight 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.content-card.prev {
+    transform: translateX(-100px);
+}
+
+/* 动画关键帧 */
+@keyframes slideFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideExitLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+}
+
+@keyframes slideExitRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+/* Header Styles */
+header {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px;
+    padding: 40px;
+    text-align: center;
+    background-color: var(--container-bg);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    box-shadow: var(--glass-shadow);
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+header.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Search and Settings Pages */
+.search-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 40px;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-suggestions, .quick-access {
+    margin-bottom: 30px;
+}
+
+.search-suggestions h3, .quick-access h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+    font-size: 18px;
+}
+
+.settings-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.settings-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background-color: var(--input-bg);
+    border-radius: 16px;
+}
+
+.settings-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    font-size: 20px;
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.theme-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.theme-option {
+    padding: 10px 16px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    background-color: var(--container-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.theme-option:hover {
+    border-color: var(--accent-color);
+}
+
+.theme-option.active {
+    border-color: var(--accent-color);
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* Sections */
+#projects, #skills, #contact {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 40px;
+    text-align: center;
+    background-color: var(--container-bg);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    box-shadow: var(--glass-shadow);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.project-item h3 {
+    margin-bottom: 10px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    #link-list {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+        padding: 10px;
+        margin: -10px;
+    }
+    
+    .container {
+        margin: 0 10px;
+        padding: 15px;
+    }
+    
+    .content-card {
+        padding: 10px;
+    }
+    
+    .quick-links {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

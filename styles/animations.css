@@ -1,0 +1,248 @@
+/* Animations and Effects - 动画和特效 */
+
+/* Intro Animation */
+.intro {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    animation: intro-hide 2.5s ease forwards;
+    animation-delay: 1.5s;
+}
+
+.intro img {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    opacity: 0;
+    animation: intro-show 1.2s ease forwards;
+}
+
+@keyframes intro-show {
+    to { opacity: 1; }
+}
+
+@keyframes intro-hide {
+    to { opacity: 0; visibility: hidden; }
+}
+
+/* Scroll Reveal */
+.reveal {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* Dock Styles */
+.dock {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-inset);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: calc(100vw - 40px);
+    width: auto;
+    white-space: nowrap;
+}
+
+.dock-bubble {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    width: 60px;
+    height: calc(100% - 8px);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    border-radius: 20px;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 0;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: scale(0.9);
+}
+
+body.dark-mode .dock-bubble {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.02) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--text-color);
+    padding: 8px 14px;
+    border-radius: 18px;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    text-align: center;
+    transform-origin: bottom center;
+    z-index: 1;
+    position: relative;
+    min-width: 60px;
+}
+
+.dock-item:hover {
+    transform: translateY(-2px) scale(1.05);
+    color: var(--accent-color);
+}
+
+.dock-item:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dock-item.active {
+    color: var(--accent-color);
+    text-shadow: 0 0 8px rgba(0, 113, 227, 0.3);
+}
+
+body.dark-mode .dock-item.active {
+    text-shadow: 0 0 8px rgba(10, 132, 255, 0.4);
+}
+
+.dock-icon {
+    font-size: 22px;
+    margin-bottom: 2px;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dock-label {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0.9;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dock-item:hover .dock-icon {
+    transform: scale(1.1);
+}
+
+.dock-item:hover .dock-label {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* Enhanced glass morphism effects */
+.dock::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.02) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+    );
+    border-radius: 24px;
+    z-index: -1;
+}
+
+body.dark-mode .dock::before {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.01) 50%,
+        rgba(255, 255, 255, 0.02) 100%
+    );
+}
+
+/* Improved Safari compatibility */
+@supports (-webkit-backdrop-filter: blur(20px)) {
+    .dock {
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(20px) saturate(180%);
+    }
+}
+
+/* Safari-specific optimizations */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .dock {
+        -webkit-transform: translateX(-50%);
+        transform: translateX(-50%);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        -webkit-perspective: 1000px;
+        perspective: 1000px;
+    }
+    
+    .dock-bubble {
+        -webkit-transform: scale(0.9);
+        transform: scale(0.9);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+    
+    .dock-item {
+        -webkit-transform-origin: bottom center;
+        transform-origin: bottom center;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+}
+
+/* Enhanced performance for Safari */
+.dock, .dock-bubble, .dock-item {
+    will-change: transform, opacity;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .dock {
+        bottom: 15px;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+    
+    .dock-item {
+        padding: 6px 10px;
+        min-width: 50px;
+    }
+    
+    .dock-icon {
+        font-size: 20px;
+    }
+    
+    .dock-label {
+        font-size: 10px;
+    }
+    
+    .dock-bubble {
+        width: 50px;
+    }
+}
