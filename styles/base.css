@@ -18,10 +18,6 @@ html, body {
     width: 100%;
 }
 
-body {
-    margin-bottom: 160px; /* 确保页面底部有足够空间 */
-}
-
 h1 {
     text-align: center;
     color: var(--text-color);
@@ -76,10 +72,6 @@ p {
     }
     
     .main-container {
-        padding-bottom: 0; /* 移除container底部空间 */
-    }
-    
-    body {
-        margin-bottom: 140px; /* 移动端为body添加底部空间 */
+        padding-bottom: 120px; /* 移动端稍小的底部空间 */
     }
 }
