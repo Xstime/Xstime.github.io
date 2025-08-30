@@ -368,13 +368,9 @@
                     if (canAccessGoogle) {
                         this.currentEngine = 'google';
                         this.updateSearchIcon('google');
-                        AppState.googleAvailable = true;
-                        console.log('设置搜索引擎为 Google');
                     } else {
                         this.currentEngine = 'baidu';
                         this.updateSearchIcon('baidu');
-                        AppState.googleAvailable = false;
-                        console.log('设置搜索引擎为百度');
                     }
                 } catch (error) {
                     console.log('搜索引擎检测失败，使用百度作为备选:', error);
