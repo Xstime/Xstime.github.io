@@ -357,15 +357,20 @@
                 }
                 
                 try {
+                    console.log('开始检测搜索引擎可用性...');
                     // 尝试检测网络连接和访问谷歌
                     const canAccessGoogle = await this.checkGoogleAccess();
+                    
+                    console.log('Google 访问检测结果:', canAccessGoogle);
                     
                     if (canAccessGoogle) {
                         this.currentEngine = 'google';
                         this.updateSearchIcon('google');
+                        console.log('设置搜索引擎为 Google');
                     } else {
                         this.currentEngine = 'baidu';
                         this.updateSearchIcon('baidu');
+                        console.log('设置搜索引擎为百度');
                     }
                 } catch (error) {
                     console.log('搜索引擎检测失败，使用百度作为备选:', error);
@@ -433,6 +438,7 @@
             
             async checkGoogleAccess() {
                 try {
+                    console.log('开始检测 Google 访问性...');
                     // 使用多种方法检测Google访问性
                     const promises = [
                         this.pingGoogle(),
@@ -442,8 +448,17 @@
                     
                     // 如果任何一个方法成功，就认为可以访问Google
                     const results = await Promise.allSettled(promises);
-                    return results.some(result => result.status === 'fulfilled' && result.value === true);
+                    console.log('检测结果:', results.map((r, i) => ({
+                        method: ['pingGoogle', 'checkDNS', 'testImageLoad'][i],
+                        status: r.status,
+                        value: r.value
+                    })));
+                    
+                    const canAccess = results.some(result => result.status === 'fulfilled' && result.value === true);
+                    console.log('最终检测结果: Google 可访问 =', canAccess);
+                    return canAccess;
                 } catch (error) {
+                    console.log('检测过程出错:', error);
                     return false;
                 }
             },
@@ -452,9 +467,9 @@
                 try {
                     // 尝试访问Google的favicon，这个请求通常很快
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    const timeoutId = setTimeout(() => controller.abort(), 2000); // 缩短超时时间
                     
-                    const response = await fetch('https://www.google.com/favicon.ico', {
+                    const response = await fetch(`https://www.google.com/favicon.ico?t=${Date.now()}`, {
                         method: 'HEAD',
                         mode: 'no-cors',
                         signal: controller.signal,
@@ -464,6 +479,7 @@
                     clearTimeout(timeoutId);
                     return true;
                 } catch (error) {
+                    console.log('Google ping 失败:', error.name);
                     return false;
                 }
             },
@@ -472,17 +488,19 @@
                 try {
                     // 尝试解析Google域名
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 2000);
+                    const timeoutId = setTimeout(() => controller.abort(), 1500); // 缩短超时时间
                     
-                    await fetch('https://google.com', {
+                    await fetch(`https://google.com?t=${Date.now()}`, {
                         method: 'HEAD',
                         mode: 'no-cors',
-                        signal: controller.signal
+                        signal: controller.signal,
+                        cache: 'no-cache'
                     });
                     
                     clearTimeout(timeoutId);
                     return true;
                 } catch (error) {
+                    console.log('Google DNS 检查失败:', error.name);
                     return false;
                 }
             },
@@ -493,7 +511,7 @@
                     const timeout = setTimeout(() => {
                         img.onload = img.onerror = null;
                         resolve(false);
-                    }, 2000);
+                    }, 1500); // 缩短超时时间
                     
                     img.onload = () => {
                         clearTimeout(timeout);
@@ -502,10 +520,11 @@
                     
                     img.onerror = () => {
                         clearTimeout(timeout);
+                        console.log('Google 图片加载失败');
                         resolve(false);
                     };
                     
-                    img.src = 'https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png';
+                    img.src = `https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png?t=${Date.now()}`;
                 });
             },
             
@@ -526,10 +545,22 @@
                         searchUrl = `https://www.baidu.com/s?wd=${encodedQuery}`;
                         break;
                     case 'scholar':
-                        searchUrl = `https://scholar.google.com/scholar?q=${encodedQuery}`;
+                        // 学术搜索也要根据当前引擎选择
+                        if (this.currentEngine === 'baidu') {
+                            // 使用百度学术
+                            searchUrl = `https://xueshu.baidu.com/s?wd=${encodedQuery}`;
+                        } else {
+                            // 默认使用Google Scholar
+                            searchUrl = `https://scholar.google.com/scholar?q=${encodedQuery}`;
+                        }
                         break;
                     default:
-                        searchUrl = `https://www.google.com/search?q=${encodedQuery}`;
+                        // 默认情况下根据当前检测到的引擎选择
+                        if (this.currentEngine === 'baidu') {
+                            searchUrl = `https://www.baidu.com/s?wd=${encodedQuery}`;
+                        } else {
+                            searchUrl = `https://www.google.com/search?q=${encodedQuery}`;
+                        }
                 }
                 
                 window.open(searchUrl, '_blank');
@@ -975,7 +1006,7 @@
 
             handleTagClick(e) {
                 const query = e.target.textContent;
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                SearchManager.search(query);
             },
 
             handleThemeOptionClick(e) {
