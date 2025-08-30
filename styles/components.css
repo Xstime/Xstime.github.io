@@ -241,6 +241,24 @@ body.dark-mode .link-item:hover {
     flex-shrink: 0;
 }
 
+/* 文本图标样式 */
+.link-item .text-favicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .link-item .text-favicon {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
 .link-item span {
     flex-grow: 0;
     white-space: normal;

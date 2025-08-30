@@ -108,22 +108,22 @@
                         <div class="quick-links">
                             <a href="https://scholar.google.com" target="_blank" class="quick-link">
                                 <img src="icon/scholar.google.com.png" alt="Google Scholar" class="quick-icon" 
-                                     onerror="this.src='https://www.google.com/s2/favicons?domain=scholar.google.com&sz=32'">
+                                     onerror="this.style.display='none'">
                                 <span>Google Scholar</span>
                             </a>
                             <a href="https://www.cnki.net" target="_blank" class="quick-link">
                                 <img src="icon/www.cnki.net.png" alt="中国知网" class="quick-icon"
-                                    onerror="this.src='https://www.google.com/s2/favicons?domain=www.cnki.net&sz=32'">
+                                    onerror="this.style.display='none'">
                                 <span>中国知网</span>
                             </a>
                             <a href="https://www.webofscience.com" target="_blank" class="quick-link">
                                 <img src="icon/www.webofscience.com.png" alt="Web of Science" class="quick-icon" 
-                                     onerror="this.src='https://www.google.com/s2/favicons?domain=www.webofscience.com&sz=32'">
+                                     onerror="this.style.display='none'">
                                 <span>Web of Science</span>
                             </a>
                             <a href="https://www.wanfangdata.com.cn" target="_blank" class="quick-link">
                                 <img src="icon/www.wanfangdata.com.cn.png" alt="万方数据" class="quick-icon"
-                                     onerror="this.src='https://www.google.com/s2/favicons?domain=www.wanfangdata.com.cn&sz=32'">
+                                     onerror="this.style.display='none'">
                                 <span>万方数据</span>
                             </a>
                         </div>
@@ -187,7 +187,9 @@
             currentTheme: 'auto',
             currentContent: 'home',
             retryCount: 0,
-            links: []
+            links: [],
+            googleAvailable: false, // 添加Google可用性状态
+            isOffline: false
         };
 
         // 工具函数 - Utility Functions
@@ -366,16 +368,19 @@
                     if (canAccessGoogle) {
                         this.currentEngine = 'google';
                         this.updateSearchIcon('google');
+                        AppState.googleAvailable = true;
                         console.log('设置搜索引擎为 Google');
                     } else {
                         this.currentEngine = 'baidu';
                         this.updateSearchIcon('baidu');
+                        AppState.googleAvailable = false;
                         console.log('设置搜索引擎为百度');
                     }
                 } catch (error) {
                     console.log('搜索引擎检测失败，使用百度作为备选:', error);
                     this.currentEngine = 'baidu';
                     this.updateSearchIcon('baidu');
+                    AppState.googleAvailable = false;
                 }
             },
 
@@ -389,20 +394,30 @@
                 
                 switch (engine) {
                     case 'google':
-                        // 创建Google图标
+                        // 尝试使用本地图标，如果失败则使用文本
                         const googleImg = document.createElement('img');
-                        googleImg.setAttribute('src', 'https://www.google.com/s2/favicons?domain=google.com&sz=16');
+                        googleImg.setAttribute('src', 'icon/google.com.png');
                         googleImg.setAttribute('alt', 'Google');
                         googleImg.setAttribute('style', 'width: 16px; height: 16px;');
                         
-                        // 设置错误处理
+                        // 设置错误处理 - 避免使用Google的favicon服务
                         googleImg.addEventListener('error', function() {
-                            if (this.src.indexOf('s2/favicons') > -1) {
-                                this.src = 'https://www.google.com/favicon.ico';
-                            } else {
-                                const textNode = document.createTextNode('G');
-                                this.parentNode.replaceChild(textNode, this);
-                            }
+                            // 直接使用文本图标而不是Google服务
+                            const textIcon = document.createElement('span');
+                            textIcon.textContent = 'G';
+                            textIcon.style.cssText = `
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 16px;
+                                height: 16px;
+                                background: #4285f4;
+                                color: white;
+                                border-radius: 2px;
+                                font-size: 10px;
+                                font-weight: bold;
+                            `;
+                            this.parentNode.replaceChild(textIcon, this);
                         });
                         
                         searchIcon.appendChild(googleImg);
@@ -410,20 +425,29 @@
                         break;
                         
                     case 'baidu':
-                        // 创建百度图标
+                        // 使用本地图标或文本
                         const baiduImg = document.createElement('img');
-                        baiduImg.setAttribute('src', 'https://www.google.com/s2/favicons?domain=baidu.com&sz=16');
+                        baiduImg.setAttribute('src', 'icon/baidu.com.png');
                         baiduImg.setAttribute('alt', '百度');
                         baiduImg.setAttribute('style', 'width: 16px; height: 16px;');
                         
                         // 设置错误处理
                         baiduImg.addEventListener('error', function() {
-                            if (this.src.indexOf('s2/favicons') > -1) {
-                                this.src = 'https://www.baidu.com/favicon.ico';
-                            } else {
-                                const textNode = document.createTextNode('百');
-                                this.parentNode.replaceChild(textNode, this);
-                            }
+                            const textIcon = document.createElement('span');
+                            textIcon.textContent = '百';
+                            textIcon.style.cssText = `
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 16px;
+                                height: 16px;
+                                background: #2932e1;
+                                color: white;
+                                border-radius: 2px;
+                                font-size: 10px;
+                                font-weight: bold;
+                            `;
+                            this.parentNode.replaceChild(textIcon, this);
                         });
                         
                         searchIcon.appendChild(baiduImg);
@@ -667,16 +691,78 @@
                 if (domain) {
                     favicon.src = `icon/${domain}.png`;
                     favicon.onerror = () => {
-                        favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-                        favicon.onerror = () => {
-                            favicon.style.display = 'none';
-                        };
+                        // 根据当前检测到的搜索引擎状态决定是否使用Google的服务
+                        if (this.canUseGoogleServices()) {
+                            favicon.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                            favicon.onerror = () => {
+                                this.setFallbackIcon(favicon, domain);
+                            };
+                        } else {
+                            this.setFallbackIcon(favicon, domain);
+                        }
                     };
                 } else {
                     favicon.style.display = 'none';
                 }
                 
                 return favicon;
+            },
+
+            canUseGoogleServices() {
+                // 检查AppState中的Google可用性状态
+                return AppState.googleAvailable;
+            },
+
+            setFallbackIcon(favicon, domain) {
+                // 设置备选图标：使用emoji或隐藏
+                const fallbackEmojis = {
+                    'github.com': '🐙',
+                    'baidu.com': '🔍',
+                    'google.com': 'G',
+                    'apple.com': '🍎',
+                    'microsoft.com': '📝',
+                    'zhihu.com': '知',
+                    'bilibili.com': '📺',
+                    'weibo.com': '微',
+                    'taobao.com': '🛒',
+                    'jd.com': '🛍️'
+                };
+
+                const emoji = fallbackEmojis[domain];
+                if (emoji) {
+                    // 创建文本图标
+                    const textIcon = document.createElement('div');
+                    textIcon.className = 'favicon text-favicon';
+                    textIcon.textContent = emoji;
+                    textIcon.style.cssText = `
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: var(--card-bg);
+                        color: var(--text-color);
+                        font-size: 16px;
+                        font-weight: bold;
+                        border: 1px solid var(--border-color);
+                    `;
+                    favicon.parentNode.replaceChild(textIcon, favicon);
+                    } else {
+                        // 使用默认图片
+                        const defaultImg = document.createElement('img');
+                        defaultImg.className = 'favicon';
+                        defaultImg.src = 'icon/default.png';
+                        defaultImg.alt = '默认图标';
+                        defaultImg.style.cssText = `
+                            width: 32px;
+                            height: 32px;
+                            border-radius: 8px;
+                            background: var(--card-bg);
+                            border: 1px solid var(--border-color);
+                        `;
+                        favicon.parentNode.replaceChild(defaultImg, favicon);
+                }
             }
         };
 
