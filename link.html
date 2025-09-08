@@ -169,6 +169,9 @@
         </a>
     </div>
 
+    <!-- iOS-style bottom indicator -->
+    <div class="bottom-indicator"></div>
+
     <script>
         // 全局配置常量 - Global Configuration Constants
         const CONFIG = {
@@ -977,7 +980,6 @@
             },
 
             setupGlobalEvents() {
-                window.addEventListener('scroll', Utils.throttle(this.handleScroll.bind(this), 16));
                 window.addEventListener('resize', Utils.debounce(this.handleResize.bind(this), 250));
                 
                 // 监听系统主题变化
@@ -1126,15 +1128,6 @@
                 }
             },
 
-            handleScroll() {
-                const scrolled = window.pageYOffset;
-                const parallax = scrolled * CONFIG.PARALLAX_FACTOR;
-                const dock = document.querySelector('.dock');
-                if (dock) {
-                    dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
-                }
-            },
-
             handleResize() {
                 // 响应式处理
                 console.log('窗口大小改变');
@@ -1249,6 +1242,211 @@
             }
         };
 
+        // Dock自动隐藏管理 - Dock Auto Hide Management
+        const DockAutoHideManager = {
+            isAtBottom: false,
+            isDockHidden: false,
+            lastScrollY: 0,
+            scrollDirection: 'up',
+            isMouseOverIndicator: false,
+            hideTimeout: null,
+
+            init() {
+                console.log('DockAutoHideManager 初始化...');
+                this.setupScrollListener();
+                this.setupHoverEvents();
+                this.lastScrollY = window.scrollY;
+                console.log('DockAutoHideManager 初始化完成');
+            },
+
+            setupScrollListener() {
+                console.log('设置滚动监听器...');
+                let ticking = false;
+                
+                window.addEventListener('scroll', () => {
+                    if (!ticking) {
+                        requestAnimationFrame(() => {
+                            this.handleScroll();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
+                console.log('滚动监听器设置完成');
+            },
+
+            setupHoverEvents() {
+                console.log('设置悬停事件...');
+                const dock = document.querySelector('.dock');
+                const indicator = document.querySelector('.bottom-indicator');
+
+                console.log('Dock元素:', dock);
+                console.log('Indicator元素:', indicator);
+
+                if (indicator) {
+                    // 鼠标进入指示器
+                    indicator.addEventListener('mouseenter', () => {
+                        console.log('鼠标进入指示器');
+                        this.isMouseOverIndicator = true;
+                        if (this.isDockHidden) {
+                            this.showDock();
+                        }
+                    });
+
+                    // 鼠标离开指示器
+                    indicator.addEventListener('mouseleave', () => {
+                        console.log('鼠标离开指示器');
+                        this.isMouseOverIndicator = false;
+                        if (this.isAtBottom) {
+                            this.scheduleHideDock();
+                        }
+                    });
+
+                    // 点击指示器
+                    indicator.addEventListener('click', (e) => {
+                        console.log('点击指示器');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (this.isDockHidden) {
+                            this.showDock();
+                            // 显示3秒后再次隐藏
+                            setTimeout(() => {
+                                if (this.isAtBottom && !this.isMouseOverIndicator) {
+                                    this.hideDock();
+                                }
+                            }, 3000);
+                        }
+                    });
+                    console.log('指示器事件绑定完成');
+                }
+
+                if (dock) {
+                    // 鼠标进入dock时
+                    dock.addEventListener('mouseenter', () => {
+                        console.log('鼠标进入dock');
+                        if (this.isDockHidden) {
+                            this.showDock();
+                        }
+                        this.clearHideTimeout();
+                    });
+
+                    // 鼠标离开dock时
+                    dock.addEventListener('mouseleave', () => {
+                        console.log('鼠标离开dock');
+                        if (this.isAtBottom && !this.isMouseOverIndicator) {
+                            this.scheduleHideDock();
+                        }
+                    });
+                    console.log('Dock事件绑定完成');
+                }
+                console.log('悬停事件设置完成');
+            },
+
+            handleScroll() {
+                const currentScrollY = window.scrollY;
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollThreshold = 50; // 距离底部的阈值
+
+                // 判断滚动方向
+                this.scrollDirection = currentScrollY > this.lastScrollY ? 'down' : 'up';
+                this.lastScrollY = currentScrollY;
+
+                // 判断是否接近底部
+                const wasAtBottom = this.isAtBottom;
+                this.isAtBottom = (maxScroll - currentScrollY) <= scrollThreshold;
+
+                if (this.isAtBottom !== wasAtBottom) {
+                    console.log('底部状态改变:', this.isAtBottom ? '到达底部' : '离开底部');
+                }
+
+                // 如果刚离开底部，显示dock并隐藏指示器
+                if (!this.isAtBottom && wasAtBottom) {
+                    console.log('离开底部，显示dock');
+                    this.showDock();
+                }
+                
+                // 如果刚到达底部且鼠标不在指示器上，隐藏dock
+                if (this.isAtBottom && !wasAtBottom && !this.isMouseOverIndicator) {
+                    console.log('到达底部且鼠标不在指示器上，准备隐藏dock');
+                    this.scheduleHideDock();
+                }
+
+                // 处理parallax效果（只在dock可见时）
+                if (!this.isDockHidden) {
+                    const parallax = currentScrollY * CONFIG.PARALLAX_FACTOR;
+                    const dock = document.querySelector('.dock');
+                    if (dock && !dock.classList.contains('hidden')) {
+                        dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
+                    }
+                }
+            },
+
+            scheduleHideDock() {
+                console.log('计划隐藏dock (800ms后)');
+                this.clearHideTimeout();
+                this.hideTimeout = setTimeout(() => {
+                    if (this.isAtBottom && !this.isMouseOverIndicator) {
+                        console.log('执行隐藏dock');
+                        this.hideDock();
+                    } else {
+                        console.log('取消隐藏dock - 条件不满足');
+                    }
+                }, 800); // 延迟800ms后隐藏
+            },
+
+            hideDock() {
+                console.log('隐藏dock');
+                const dock = document.querySelector('.dock');
+                const indicator = document.querySelector('.bottom-indicator');
+                
+                if (dock && !this.isDockHidden) {
+                    dock.classList.add('hidden');
+                    dock.classList.remove('showing');
+                    this.isDockHidden = true;
+                    console.log('Dock已隐藏');
+                }
+                
+                if (indicator) {
+                    indicator.classList.add('visible');
+                    console.log('指示器已显示');
+                }
+            },
+
+            showDock() {
+                console.log('显示dock');
+                const dock = document.querySelector('.dock');
+                const indicator = document.querySelector('.bottom-indicator');
+                
+                if (dock) {
+                    dock.classList.remove('hidden');
+                    dock.classList.add('showing');
+                    this.isDockHidden = false;
+                    
+                    // 恢复parallax位置，但需要延迟执行避免被CSS transition覆盖
+                    setTimeout(() => {
+                        if (!this.isDockHidden) {
+                            const parallax = this.lastScrollY * CONFIG.PARALLAX_FACTOR;
+                            dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
+                        }
+                    }, 100);
+                    console.log('Dock已显示');
+                }
+                
+                if (indicator) {
+                    indicator.classList.remove('visible');
+                    console.log('指示器已隐藏');
+                }
+            },
+
+            clearHideTimeout() {
+                if (this.hideTimeout) {
+                    clearTimeout(this.hideTimeout);
+                    this.hideTimeout = null;
+                    console.log('清除隐藏计时器');
+                }
+            }
+        };
+
         // 应用初始化 - Application Initialization
         const App = {
             async init() {
@@ -1261,6 +1459,7 @@
                     // 初始化各个管理器
                     ThemeManager.init();
                     DockManager.init();
+                    DockAutoHideManager.init();
                     ContentManager.init();
                     EventManager.init();
                     
