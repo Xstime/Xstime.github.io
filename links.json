@@ -62,5 +62,17 @@
   {
     "name": "NJIT信息门户",
     "url": "http://ehall.njit.edu.cn/new/index.html"
+  },
+  {
+    "name": "腾讯会议",
+    "url": "https://meeting.tencent.com"
+  },
+  {
+    "name": "YouTube",
+    "url": "https://www.youtube.com"
+  },
+  {
+    "name": "衡真电网",
+    "url": "https://www.hzdwpx.com"
   }
 ]
