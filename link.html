@@ -13,6 +13,95 @@
     <link rel="stylesheet" href="styles/animations.css">
     <link rel="stylesheet" href="styles/link.css">
     <link rel="stylesheet" href="styles/loading.css">
+    
+    <!-- 超级简化测试脚本 -->
+    <script>
+        console.log('🟢 定时隐藏脚本开始');
+        
+        // 全局错误捕获
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('🚨 JavaScript错误:', msg, 'at', line + ':' + col);
+            return false;
+        };
+        
+        // 页面加载完成后1秒自动隐藏dock
+        window.addEventListener('load', function() {
+            console.log('🟢 页面加载完成，1秒后隐藏dock');
+            
+            setTimeout(() => {
+                console.log('⏰ 开始执行隐藏逻辑');
+                
+                try {
+                    const dock = document.querySelector('.dock');
+                    console.log('🎯 dock元素:', dock ? '找到' : '未找到');
+                    
+                    if (dock) {
+                        console.log('🫥 隐藏dock');
+                        
+                        // 创建底部指示器
+                        const indicator = document.createElement('div');
+                        indicator.className = 'bottom-indicator';
+                        indicator.style.cssText = `
+                            position: fixed;
+                            bottom: 8px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            width: 40px;
+                            height: 4px;
+                            background: rgba(120, 120, 120, 0.8);
+                            border-radius: 2px;
+                            opacity: 0.8;
+                            transition: all 0.3s ease;
+                            z-index: 1001;
+                            cursor: pointer;
+                        `;
+                        document.body.appendChild(indicator);
+                        console.log('📍 底部指示器已创建');
+                        
+                        // 隐藏dock (向正下隐藏)
+                        dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
+                        dock.style.setProperty('opacity', '0', 'important');
+                        dock.style.setProperty('transition', 'all 0.3s ease', 'important');
+                        console.log('✅ dock已隐藏');
+                        
+                        // 鼠标悬停指示器时显示dock
+                        let showTimeout = null;
+                        indicator.addEventListener('mouseenter', function() {
+                            console.log('👁️ 鼠标进入指示器，显示dock');
+                            
+                            // 清除任何现有的隐藏计时器
+                            if (showTimeout) {
+                                clearTimeout(showTimeout);
+                                showTimeout = null;
+                            }
+                            
+                            dock.style.setProperty('transform', 'translateX(-50%) translateY(0)', 'important');
+                            dock.style.setProperty('opacity', '1', 'important');
+                            indicator.style.opacity = '0';
+                        });
+                        
+                        // 鼠标离开指示器时设置3秒延迟隐藏
+                        indicator.addEventListener('mouseleave', function() {
+                            console.log('🫥 鼠标离开指示器，3秒后隐藏dock');
+                            
+                            // 设置3秒后隐藏
+                            showTimeout = setTimeout(function() {
+                                console.log('⏰ 3秒时间到，隐藏dock');
+                                dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
+                                dock.style.setProperty('opacity', '0', 'important');
+                                indicator.style.opacity = '0.8';
+                                showTimeout = null;
+                            }, 3000);
+                        });
+                        
+                        console.log('🎉 定时隐藏功能设置完成');
+                    }
+                } catch (err) {
+                    console.error('❌ 错误:', err);
+                }
+            }, 1000);  // 1秒后执行
+        });
+    </script>
 </head>
 <body>
 
@@ -1250,20 +1339,30 @@
             scrollDirection: 'up',
             isMouseOverIndicator: false,
             hideTimeout: null,
+            showTimeout: null, // 新增：用于3秒显示计时
 
             init() {
-                console.log('DockAutoHideManager 初始化...');
-                this.setupScrollListener();
-                this.setupHoverEvents();
-                this.lastScrollY = window.scrollY;
-                console.log('DockAutoHideManager 初始化完成');
+                console.log('=== DockAutoHideManager 开始初始化 ===');
+                try {
+                    this.setupScrollListener();
+                    this.setupHoverEvents();
+                    this.lastScrollY = window.scrollY;
+                    console.log('=== DockAutoHideManager 初始化完成 ===');
+                    
+                    // 测试：立即执行一次handleScroll
+                    console.log('测试：执行一次handleScroll');
+                    this.handleScroll();
+                } catch (error) {
+                    console.error('DockAutoHideManager 初始化失败:', error);
+                }
             },
 
             setupScrollListener() {
-                console.log('设置滚动监听器...');
+                console.log('=== 设置滚动监听器 ===');
                 let ticking = false;
                 
                 window.addEventListener('scroll', () => {
+                    console.log('滚动事件触发');
                     if (!ticking) {
                         requestAnimationFrame(() => {
                             this.handleScroll();
@@ -1272,7 +1371,7 @@
                         ticking = true;
                     }
                 });
-                console.log('滚动监听器设置完成');
+                console.log('=== 滚动监听器设置完成 ===');
             },
 
             setupHoverEvents() {
@@ -1288,6 +1387,11 @@
                     indicator.addEventListener('mouseenter', () => {
                         console.log('鼠标进入指示器');
                         this.isMouseOverIndicator = true;
+                        
+                        // 清除任何现有的计时器
+                        this.clearShowTimeout();
+                        this.clearHideTimeout();
+                        
                         if (this.isDockHidden) {
                             this.showDock();
                         }
@@ -1295,10 +1399,12 @@
 
                     // 鼠标离开指示器
                     indicator.addEventListener('mouseleave', () => {
-                        console.log('鼠标离开指示器');
+                        console.log('鼠标离开指示器，设置3秒后隐藏');
                         this.isMouseOverIndicator = false;
-                        if (this.isAtBottom) {
-                            this.scheduleHideDock();
+                        
+                        if (this.isDockHidden === false) {
+                            // 设置3秒后隐藏
+                            this.scheduleShowTimeout();
                         }
                     });
 
@@ -1310,11 +1416,7 @@
                         if (this.isDockHidden) {
                             this.showDock();
                             // 显示3秒后再次隐藏
-                            setTimeout(() => {
-                                if (this.isAtBottom && !this.isMouseOverIndicator) {
-                                    this.hideDock();
-                                }
-                            }, 3000);
+                            this.scheduleShowTimeout();
                         }
                     });
                     console.log('指示器事件绑定完成');
@@ -1327,14 +1429,17 @@
                         if (this.isDockHidden) {
                             this.showDock();
                         }
+                        // 清除所有计时器
                         this.clearHideTimeout();
+                        this.clearShowTimeout();
                     });
 
                     // 鼠标离开dock时
                     dock.addEventListener('mouseleave', () => {
                         console.log('鼠标离开dock');
-                        if (this.isAtBottom && !this.isMouseOverIndicator) {
-                            this.scheduleHideDock();
+                        if (!this.isMouseOverIndicator) {
+                            // 设置3秒后隐藏
+                            this.scheduleShowTimeout();
                         }
                     });
                     console.log('Dock事件绑定完成');
@@ -1345,29 +1450,40 @@
             handleScroll() {
                 const currentScrollY = window.scrollY;
                 const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-                const scrollThreshold = 50; // 距离底部的阈值
-
+                
+                console.log('滚动调试信息:', {
+                    currentScrollY: currentScrollY,
+                    maxScroll: maxScroll,
+                    documentHeight: document.documentElement.scrollHeight,
+                    windowHeight: window.innerHeight
+                });
+                
                 // 判断滚动方向
                 this.scrollDirection = currentScrollY > this.lastScrollY ? 'down' : 'up';
                 this.lastScrollY = currentScrollY;
 
-                // 判断是否接近底部
+                // 判断是否滚动到50%位置（进一步降低阈值以便测试）
                 const wasAtBottom = this.isAtBottom;
-                this.isAtBottom = (maxScroll - currentScrollY) <= scrollThreshold;
+                // 修正滚动百分比计算：当前滚动位置与总可滚动距离的比例
+                const scrollPercentage = maxScroll > 0 ? (currentScrollY / maxScroll) : 0;
+                // 当滚动超过50%时触发隐藏（进一步降低阈值）
+                this.isAtBottom = scrollPercentage >= 0.5;
+                
+                console.log('滚动百分比:', Math.round(scrollPercentage * 100) + '%', '是否达到50%:', this.isAtBottom);
 
                 if (this.isAtBottom !== wasAtBottom) {
-                    console.log('底部状态改变:', this.isAtBottom ? '到达底部' : '离开底部');
+                    console.log('滚动位置状态改变:', this.isAtBottom ? '到达50%位置' : '离开50%位置', '当前滚动百分比:', Math.round(scrollPercentage * 100) + '%');
                 }
 
-                // 如果刚离开底部，显示dock并隐藏指示器
+                // 如果刚离开50%位置，显示dock并隐藏指示器
                 if (!this.isAtBottom && wasAtBottom) {
-                    console.log('离开底部，显示dock');
+                    console.log('离开50%位置，显示dock');
                     this.showDock();
                 }
                 
-                // 如果刚到达底部且鼠标不在指示器上，隐藏dock
+                // 如果刚到达50%位置且鼠标不在指示器上，隐藏dock
                 if (this.isAtBottom && !wasAtBottom && !this.isMouseOverIndicator) {
-                    console.log('到达底部且鼠标不在指示器上，准备隐藏dock');
+                    console.log('到达50%位置且鼠标不在指示器上，准备隐藏dock');
                     this.scheduleHideDock();
                 }
 
@@ -1444,6 +1560,26 @@
                     this.hideTimeout = null;
                     console.log('清除隐藏计时器');
                 }
+            },
+
+            scheduleShowTimeout() {
+                console.log('设置3秒后隐藏dock');
+                this.clearShowTimeout();
+                this.showTimeout = setTimeout(() => {
+                    console.log('3秒时间到，隐藏dock');
+                    if (!this.isMouseOverIndicator) {
+                        this.hideDock();
+                    }
+                    this.showTimeout = null;
+                }, 3000);
+            },
+
+            clearShowTimeout() {
+                if (this.showTimeout) {
+                    clearTimeout(this.showTimeout);
+                    this.showTimeout = null;
+                    console.log('清除3秒显示计时器');
+                }
             }
         };
 
@@ -1457,11 +1593,16 @@
                     this.preloadResources();
                     
                     // 初始化各个管理器
+                    console.log('开始初始化各个管理器...');
                     ThemeManager.init();
+                    console.log('ThemeManager 初始化完成');
                     DockManager.init();
-                    DockAutoHideManager.init();
+                    console.log('DockManager 初始化完成');
+                    // DockAutoHideManager 已被新版本替换，不再需要初始化
                     ContentManager.init();
+                    console.log('ContentManager 初始化完成');
                     EventManager.init();
+                    console.log('EventManager 初始化完成');
                     
                     // 检测搜索引擎（并行执行）
                     const searchDetectionPromise = SearchManager.detectSearchEngine();
@@ -1541,6 +1682,43 @@
         // 兼容旧版本的全局函数
         window.toggleTheme = () => ThemeManager.toggle();
         window.switchContent = (content) => ContentManager.switch(content);
+    </script>
+
+    <!-- Dock 自动隐藏功能 - 超级简化版本 -->
+    <script>
+        console.log('🚀 开始加载自动隐藏功能');
+        
+
+
+
+
+
+
+            
+            function handleScroll() {
+                scrollCount++;
+                const scrollY = window.scrollY;
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                const percentage = maxScroll > 0 ? (scrollY / maxScroll) * 100 : 0;
+                
+                console.log(`� 滚动事件 #${scrollCount}:`);
+                console.log(`   scrollY: ${scrollY}, 百分比: ${percentage.toFixed(1)}%`);
+                
+                clearTimeout(hideTimeout);
+                
+                if (percentage >= 10) { // 降低到10%更容易触发
+                    console.log('⬇️ 达到10%，准备隐藏dock');
+                    hideTimeout = setTimeout(() => {
+                        console.log('🔽 执行滚动隐藏');
+                        dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
+                        dock.style.opacity = '0';
+                        indicator.style.opacity = '0.8';
+                    }, 100); // 减少到100ms
+                } else {
+                    console.log('⬆️ 回到10%以下，显示dock');
+                    dock.style.setProperty('transform', 'translateX(-50%) translateY(0)', 'important');
+                    dock.style.opacity = '1';
+        console.log('🎉 应用初始化完成');
     </script>
 </body>
 </html>
