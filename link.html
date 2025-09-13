@@ -1688,36 +1688,49 @@
     <script>
         console.log('🚀 开始加载自动隐藏功能');
         
-
-
-
-
-
-
+        // 滚动隐藏功能
+        let scrollCount = 0;
+        let hideTimeout;
+        
+        // 等待页面加载完成后初始化滚动隐藏功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const dock = document.querySelector('.dock');
+            const indicator = document.querySelector('.bottom-indicator');
             
-            function handleScroll() {
-                scrollCount++;
-                const scrollY = window.scrollY;
-                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-                const percentage = maxScroll > 0 ? (scrollY / maxScroll) * 100 : 0;
+            if (dock) {
+                function handleScroll() {
+                    scrollCount++;
+                    const scrollY = window.scrollY;
+                    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                    const percentage = maxScroll > 0 ? (scrollY / maxScroll) * 100 : 0;
+                    
+                    console.log(`⚪ 滚动事件 #${scrollCount}:`);
+                    console.log(`   scrollY: ${scrollY}, 百分比: ${percentage.toFixed(1)}%`);
+                    
+                    clearTimeout(hideTimeout);
+                    
+                    if (percentage >= 10) { // 降低到10%更容易触发
+                        console.log('⬇️ 达到10%，准备隐藏dock');
+                        hideTimeout = setTimeout(() => {
+                            console.log('🔽 执行滚动隐藏');
+                            dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
+                            dock.style.opacity = '0';
+                            if (indicator) indicator.style.opacity = '0.8';
+                        }, 100); // 减少到100ms
+                    } else {
+                        console.log('⬆️ 回到10%以下，显示dock');
+                        dock.style.setProperty('transform', 'translateX(-50%) translateY(0)', 'important');
+                        dock.style.opacity = '1';
+                        if (indicator) indicator.style.opacity = '0';
+                    }
+                }
                 
-                console.log(`� 滚动事件 #${scrollCount}:`);
-                console.log(`   scrollY: ${scrollY}, 百分比: ${percentage.toFixed(1)}%`);
-                
-                clearTimeout(hideTimeout);
-                
-                if (percentage >= 10) { // 降低到10%更容易触发
-                    console.log('⬇️ 达到10%，准备隐藏dock');
-                    hideTimeout = setTimeout(() => {
-                        console.log('🔽 执行滚动隐藏');
-                        dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
-                        dock.style.opacity = '0';
-                        indicator.style.opacity = '0.8';
-                    }, 100); // 减少到100ms
-                } else {
-                    console.log('⬆️ 回到10%以下，显示dock');
-                    dock.style.setProperty('transform', 'translateX(-50%) translateY(0)', 'important');
-                    dock.style.opacity = '1';
+                // 添加滚动事件监听器
+                window.addEventListener('scroll', handleScroll);
+                console.log('🎉 滚动隐藏功能初始化完成');
+            }
+        });
+        
         console.log('🎉 应用初始化完成');
     </script>
 </body>
