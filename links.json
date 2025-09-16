@@ -64,7 +64,7 @@
     "url": "http://ehall.njit.edu.cn/new/index.html"
   },
   {
-    "name": "傻逼超星",
+    "name": "超星学习通",
     "url": "https://i.chaoxing.com/base"
   },
   {
@@ -74,5 +74,9 @@
   {
     "name": "衡真电网",
     "url": "https://study.xiaoe-tech.com/t_l/learnIndex"
+  },
+  {
+    "name":"File Pizza",
+    "url":"https://file.pizza/"
   }
 ]

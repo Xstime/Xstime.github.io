@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健身记录 - FitTracker</title>
+    <meta name="description" content="专业的健身训练记录应用">
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FitTracker">
+    
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" href="icon/default.png">
+    <link rel="icon" type="image/png" href="icon/default.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/fitness.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">💪 FitTracker</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="historyBtn">
+                        📊 历史
+                    </button>
+                    <button class="btn btn-primary" id="newWorkoutBtn">
+                        ➕ 开始训练
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Quick Stats -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalWorkouts">0</div>
+                        <div class="stat-label">总训练次数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalVolume">0</div>
+                        <div class="stat-label">总重量 (kg)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="currentStreak">0</div>
+                        <div class="stat-label">连续天数</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Workout In Progress -->
+            <section class="workout-section" id="workoutSection" style="display: none;">
+                <div class="workout-header">
+                    <h2>正在训练</h2>
+                    <div class="workout-timer">
+                        <span id="workoutTimer">00:00</span>
+                    </div>
+                </div>
+                
+                <div class="exercise-list" id="exerciseList">
+                    <!-- 动态添加的运动项目 -->
+                </div>
+                
+                <div class="workout-actions">
+                    <button class="btn btn-outline" id="addExerciseBtn">
+                        ➕ 添加动作
+                    </button>
+                    <button class="btn btn-success" id="finishWorkoutBtn">
+                        ✅ 完成训练
+                    </button>
+                    <button class="btn btn-danger" id="cancelWorkoutBtn">
+                        ❌ 取消训练
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recent Workouts -->
+            <section class="recent-section">
+                <h2>最近训练</h2>
+                <div class="workout-history" id="workoutHistory">
+                    <div class="empty-state">
+                        <div class="empty-icon">🏋️‍♂️</div>
+                        <h3>开始你的第一次训练！</h3>
+                        <p>点击"开始训练"按钮来记录你的健身计划</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Exercise Selection Modal -->
+        <div class="modal" id="exerciseModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>选择动作</h3>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="exercise-categories">
+                        <div class="category" data-category="chest">
+                            <h4>胸部训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="杠铃卧推">杠铃卧推</button>
+                                <button class="exercise-option" data-exercise="哑铃卧推">哑铃卧推</button>
+                                <button class="exercise-option" data-exercise="上斜卧推">上斜卧推</button>
+                                <button class="exercise-option" data-exercise="下斜卧推">下斜卧推</button>
+                                <button class="exercise-option" data-exercise="哑铃飞鸟">哑铃飞鸟</button>
+                                <button class="exercise-option" data-exercise="绳索飞鸟">绳索飞鸟</button>
+                                <button class="exercise-option" data-exercise="俯卧撑">俯卧撑</button>
+                                <button class="exercise-option" data-exercise="双杠臂屈伸">双杠臂屈伸</button>
+                                <button class="exercise-option" data-exercise="史密斯卧推">史密斯卧推</button>
+                                <button class="exercise-option" data-exercise="胸部推举机">胸部推举机</button>
+                                <button class="exercise-option" data-exercise="蝴蝶机夹胸">蝴蝶机夹胸</button>
+                                <button class="exercise-option" data-exercise="窄距俯卧撑">窄距俯卧撑</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="back">
+                            <h4>背部训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="硬拉">硬拉</button>
+                                <button class="exercise-option" data-exercise="引体向上">引体向上</button>
+                                <button class="exercise-option" data-exercise="高位下拉">高位下拉</button>
+                                <button class="exercise-option" data-exercise="杠铃划船">杠铃划船</button>
+                                <button class="exercise-option" data-exercise="哑铃划船">哑铃划船</button>
+                                <button class="exercise-option" data-exercise="T杠划船">T杠划船</button>
+                                <button class="exercise-option" data-exercise="坐姿划船">坐姿划船</button>
+                                <button class="exercise-option" data-exercise="单臂划船">单臂划船</button>
+                                <button class="exercise-option" data-exercise="直腿硬拉">直腿硬拉</button>
+                                <button class="exercise-option" data-exercise="罗马尼亚硬拉">罗马尼亚硬拉</button>
+                                <button class="exercise-option" data-exercise="相扑硬拉">相扑硬拉</button>
+                                <button class="exercise-option" data-exercise="反向飞鸟">反向飞鸟</button>
+                                <button class="exercise-option" data-exercise="面拉">面拉</button>
+                                <button class="exercise-option" data-exercise="耸肩">耸肩</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="legs">
+                            <h4>腿部训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="杠铃深蹲">杠铃深蹲</button>
+                                <button class="exercise-option" data-exercise="前蹲">前蹲</button>
+                                <button class="exercise-option" data-exercise="哑铃深蹲">哑铃深蹲</button>
+                                <button class="exercise-option" data-exercise="腿举">腿举</button>
+                                <button class="exercise-option" data-exercise="腿屈伸">腿屈伸</button>
+                                <button class="exercise-option" data-exercise="腿弯举">腿弯举</button>
+                                <button class="exercise-option" data-exercise="弓步蹲">弓步蹲</button>
+                                <button class="exercise-option" data-exercise="保加利亚蹲">保加利亚蹲</button>
+                                <button class="exercise-option" data-exercise="哈克深蹲">哈克深蹲</button>
+                                <button class="exercise-option" data-exercise="史密斯深蹲">史密斯深蹲</button>
+                                <button class="exercise-option" data-exercise="高脚杯深蹲">高脚杯深蹲</button>
+                                <button class="exercise-option" data-exercise="相扑深蹲">相扑深蹲</button>
+                                <button class="exercise-option" data-exercise="单腿臀桥">单腿臀桥</button>
+                                <button class="exercise-option" data-exercise="臀桥">臀桥</button>
+                                <button class="exercise-option" data-exercise="臀推">臀推</button>
+                                <button class="exercise-option" data-exercise="提踵">提踵</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="shoulders">
+                            <h4>肩部训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="杠铃推举">杠铃推举</button>
+                                <button class="exercise-option" data-exercise="哑铃推举">哑铃推举</button>
+                                <button class="exercise-option" data-exercise="阿诺德推举">阿诺德推举</button>
+                                <button class="exercise-option" data-exercise="史密斯推举">史密斯推举</button>
+                                <button class="exercise-option" data-exercise="侧平举">侧平举</button>
+                                <button class="exercise-option" data-exercise="前平举">前平举</button>
+                                <button class="exercise-option" data-exercise="后束飞鸟">后束飞鸟</button>
+                                <button class="exercise-option" data-exercise="直立划船">直立划船</button>
+                                <button class="exercise-option" data-exercise="绳索侧平举">绳索侧平举</button>
+                                <button class="exercise-option" data-exercise="绳索前平举">绳索前平举</button>
+                                <button class="exercise-option" data-exercise="绳索后束">绳索后束</button>
+                                <button class="exercise-option" data-exercise="倒立撑">倒立撑</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="arms">
+                            <h4>手臂训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="杠铃弯举">杠铃弯举</button>
+                                <button class="exercise-option" data-exercise="哑铃弯举">哑铃弯举</button>
+                                <button class="exercise-option" data-exercise="锤式弯举">锤式弯举</button>
+                                <button class="exercise-option" data-exercise="集中弯举">集中弯举</button>
+                                <button class="exercise-option" data-exercise="绳索弯举">绳索弯举</button>
+                                <button class="exercise-option" data-exercise="21响礼炮">21响礼炮</button>
+                                <button class="exercise-option" data-exercise="窄距卧推">窄距卧推</button>
+                                <button class="exercise-option" data-exercise="三头屈伸">三头屈伸</button>
+                                <button class="exercise-option" data-exercise="法式推举">法式推举</button>
+                                <button class="exercise-option" data-exercise="绳索下压">绳索下压</button>
+                                <button class="exercise-option" data-exercise="钻石俯卧撑">钻石俯卧撑</button>
+                                <button class="exercise-option" data-exercise="单臂屈伸">单臂屈伸</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="core">
+                            <h4>核心训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="卷腹">卷腹</button>
+                                <button class="exercise-option" data-exercise="平板支撑">平板支撑</button>
+                                <button class="exercise-option" data-exercise="俄罗斯转体">俄罗斯转体</button>
+                                <button class="exercise-option" data-exercise="仰卧起坐">仰卧起坐</button>
+                                <button class="exercise-option" data-exercise="悬垂举腿">悬垂举腿</button>
+                                <button class="exercise-option" data-exercise="山羊挺身">山羊挺身</button>
+                                <button class="exercise-option" data-exercise="侧平板支撑">侧平板支撑</button>
+                                <button class="exercise-option" data-exercise="反向卷腹">反向卷腹</button>
+                                <button class="exercise-option" data-exercise="死虫">死虫</button>
+                                <button class="exercise-option" data-exercise="鸟狗式">鸟狗式</button>
+                                <button class="exercise-option" data-exercise="腹轮">腹轮</button>
+                                <button class="exercise-option" data-exercise="木砍">木砍</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="cardio">
+                            <h4>有氧训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="跑步机">跑步机</button>
+                                <button class="exercise-option" data-exercise="椭圆机">椭圆机</button>
+                                <button class="exercise-option" data-exercise="单车">单车</button>
+                                <button class="exercise-option" data-exercise="划船机">划船机</button>
+                                <button class="exercise-option" data-exercise="爬楼机">爬楼机</button>
+                                <button class="exercise-option" data-exercise="跳绳">跳绳</button>
+                                <button class="exercise-option" data-exercise="波比跳">波比跳</button>
+                                <button class="exercise-option" data-exercise="开合跳">开合跳</button>
+                                <button class="exercise-option" data-exercise="高抬腿">高抬腿</button>
+                                <button class="exercise-option" data-exercise="战绳">战绳</button>
+                            </div>
+                        </div>
+                        <div class="category" data-category="functional">
+                            <h4>功能性训练</h4>
+                            <div class="exercise-options">
+                                <button class="exercise-option" data-exercise="壶铃摆动">壶铃摆动</button>
+                                <button class="exercise-option" data-exercise="壶铃深蹲">壶铃深蹲</button>
+                                <button class="exercise-option" data-exercise="土耳其起立">土耳其起立</button>
+                                <button class="exercise-option" data-exercise="农夫行走">农夫行走</button>
+                                <button class="exercise-option" data-exercise="雪橇推拉">雪橇推拉</button>
+                                <button class="exercise-option" data-exercise="药球投掷">药球投掷</button>
+                                <button class="exercise-option" data-exercise="轮胎翻转">轮胎翻转</button>
+                                <button class="exercise-option" data-exercise="横向移动">横向移动</button>
+                                <button class="exercise-option" data-exercise="敏捷梯">敏捷梯</button>
+                                <button class="exercise-option" data-exercise="跳箱">跳箱</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rest Timer Modal -->
+        <div class="modal" id="restModal">
+            <div class="modal-content rest-timer">
+                <div class="modal-header">
+                    <h3>休息时间</h3>
+                    <button class="close-btn" id="closeRestModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="timer-display">
+                        <div class="timer-circle">
+                            <span id="restTimer">01:30</span>
+                        </div>
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn btn-outline" id="addTimeBtn">+30s</button>
+                        <button class="btn btn-primary" id="skipRestBtn">跳过</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/fitness.js"></script>
+</body>
+</html>
