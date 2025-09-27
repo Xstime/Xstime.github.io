@@ -221,7 +221,59 @@
             </div>
         </div>
 
-        <!-- 内容卡片3：系统设置 - Content Card 3: System Settings -->
+        <!-- 内容卡片3：编码资源 - Content Card 3: Coding Resources -->
+        <div id="content-coding" class="content-card">
+            <div class="container">
+                <h1 class="main-title">编码资源</h1>
+                <div class="search-content">
+                    <div class="search-box">
+                        <input type="text" id="coding-search-input" placeholder="搜索编程文档、教程或工具..." class="search-input">
+                        <button class="search-button" id="coding-search-btn">
+                            <span class="search-icon">💻</span>
+                            <span class="search-loading" style="display: none;">⏳</span>
+                        </button>
+                    </div>
+                    <div class="search-suggestions">
+                        <h3>常用编程标签</h3>
+                        <div class="suggestion-tags">
+                            <span class="tag">前端开发</span>
+                            <span class="tag">后端开发</span>
+                            <span class="tag">移动开发</span>
+                            <span class="tag">数据科学</span>
+                            <span class="tag">机器学习</span>
+                            <span class="tag">开源项目</span>
+                        </div>
+                    </div>
+                    <div class="quick-access">
+                        <h3>快速访问</h3>
+                        <div class="quick-links">
+                            <a href="https://github.com" target="_blank" class="quick-link">
+                                <img src="icon/github.com.png" alt="GitHub" class="quick-icon" 
+                                    onerror="this.onerror=null;this.src='icon/default.png';">
+                                <span>GitHub</span>
+                            </a>
+                            <a href="https://stackoverflow.com" target="_blank" class="quick-link">
+                                <img src="icon/stackoverflow.com.png" alt="Stack Overflow" class="quick-icon"
+                                   onerror="this.onerror=null;this.src='icon/default.png';">
+                                <span>Stack Overflow</span>
+                            </a>
+                            <a href="https://developer.mozilla.org" target="_blank" class="quick-link">
+                                <img src="icon/developer.mozilla.org.png" alt="MDN Web Docs" class="quick-icon" 
+                                    onerror="this.onerror=null;this.src='icon/default.png';">
+                                <span>MDN Web Docs</span>
+                            </a>
+                            <a href="https://www.runoob.com" target="_blank" class="quick-link">
+                                <img src="icon/www.runoob.com.png" alt="菜鸟教程" class="quick-icon"
+                                    onerror="this.onerror=null;this.src='icon/default.png';">
+                                <span>菜鸟教程</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容卡片4：系统设置 - Content Card 4: System Settings -->
         <div id="content-settings" class="content-card">
             <div class="container">
                 <h1 class="main-title">系统设置</h1>
@@ -251,6 +303,10 @@
         <a href="#" class="dock-item" data-content="search">
             <span class="dock-icon">👨‍🎓</span>
             <span class="dock-label">学术</span>
+        </a>
+        <a href="#" class="dock-item" data-content="coding">
+            <span class="dock-icon">💻</span>
+            <span class="dock-label">编码</span>
         </a>
         <a href="#" class="dock-item" data-content="settings">
             <span class="dock-icon">⚙️</span>
@@ -666,6 +722,14 @@
                             searchUrl = `https://scholar.google.com/scholar?q=${encodedQuery}`;
                         }
                         break;
+                    case 'coding':
+                        // 编码搜索优先使用GitHub和Stack Overflow
+                        searchUrl = `https://github.com/search?q=${encodedQuery}&type=repositories`;
+                        // 同时在新标签页中打开Stack Overflow搜索
+                        setTimeout(() => {
+                            window.open(`https://stackoverflow.com/search?q=${encodedQuery}`, '_blank');
+                        }, 100);
+                        break;
                     default:
                         // 默认情况下根据当前检测到的引擎选择
                         if (this.currentEngine === 'baidu') {
@@ -895,7 +959,7 @@
 
         // 内容切换管理 - Content Switching Management
         const ContentManager = {
-            menuOrder: { 'home': 0, 'search': 1, 'settings': 2 },
+            menuOrder: { 'home': 0, 'search': 1, 'coding': 2, 'settings': 3 },
             
             init() {
                 // 确保只有当前活动的内容卡片显示，其他隐藏
@@ -1041,6 +1105,22 @@
                     });
                 }
 
+                // 编码搜索框事件
+                const codingSearchInput = document.getElementById('coding-search-input');
+                const codingSearchButton = document.getElementById('coding-search-btn');
+                
+                if (codingSearchButton) {
+                    codingSearchButton.addEventListener('click', () => this.handleCodingSearch());
+                }
+
+                if (codingSearchInput) {
+                    codingSearchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            this.handleCodingSearch();
+                        }
+                    });
+                }
+
                 // 标签点击搜索
                 const suggestionTags = document.querySelectorAll('.tag');
                 suggestionTags.forEach(tag => {
@@ -1160,6 +1240,26 @@
                 }
             },
 
+            async handleCodingSearch() {
+                const searchInput = document.getElementById('coding-search-input');
+                const query = searchInput?.value.trim();
+                
+                if (!query) {
+                    ErrorManager.show('请输入搜索内容', 'warning', 2000);
+                    return;
+                }
+
+                try {
+                    this.setCodingSearchLoading(true);
+                    await Utils.delay(300);
+                    SearchManager.search(query, 'coding');
+                } catch (error) {
+                    ErrorManager.show('编码搜索失败，请重试', 'error');
+                } finally {
+                    this.setCodingSearchLoading(false);
+                }
+            },
+
             handleSearch() {
                 // 保留原有的搜索方法以兼容
                 this.handleScholarSearch();
@@ -1179,7 +1279,16 @@
 
             handleTagClick(e) {
                 const query = e.target.textContent;
-                SearchManager.search(query);
+                // 根据当前页面选择搜索引擎
+                let searchEngine;
+                if (AppState.currentContent === 'search') {
+                    searchEngine = 'scholar';
+                } else if (AppState.currentContent === 'coding') {
+                    searchEngine = 'coding';
+                } else {
+                    searchEngine = SearchManager.currentEngine;
+                }
+                SearchManager.search(query, searchEngine);
             },
 
             handleThemeOptionClick(e) {
@@ -1244,6 +1353,18 @@
                 const searchIcon = document.querySelector('#scholar-search-btn .search-icon');
                 const searchLoading = document.querySelector('#scholar-search-btn .search-loading');
                 const searchButton = document.getElementById('scholar-search-btn');
+                
+                if (searchIcon && searchLoading && searchButton) {
+                    searchIcon.style.display = isLoading ? 'none' : 'inline';
+                    searchLoading.style.display = isLoading ? 'inline' : 'none';
+                    searchButton.disabled = isLoading;
+                }
+            },
+
+            setCodingSearchLoading(isLoading) {
+                const searchIcon = document.querySelector('#coding-search-btn .search-icon');
+                const searchLoading = document.querySelector('#coding-search-btn .search-loading');
+                const searchButton = document.getElementById('coding-search-btn');
                 
                 if (searchIcon && searchLoading && searchButton) {
                     searchIcon.style.display = isLoading ? 'none' : 'inline';
