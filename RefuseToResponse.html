@@ -5,31 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>服务提示</title>
     <link rel="icon" type="image/png" href="touxiang.png">
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/safe-area.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         .container {
             text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            padding: 60px 40px;
+            background: var(--container-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
             max-width: 500px;
+            margin: 20px;
             animation: fadeIn 0.5s ease-in;
         }
 
@@ -46,63 +44,183 @@
 
         .icon {
             font-size: 80px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
         }
 
         h1 {
             font-size: 32px;
             margin-bottom: 20px;
             font-weight: 600;
+            color: var(--text-color);
         }
 
-        p {
+        .subtitle {
             font-size: 18px;
             line-height: 1.6;
-            opacity: 0.9;
+            opacity: 0.8;
             margin-bottom: 30px;
+            color: var(--text-color);
         }
 
         .info {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-top: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            margin: 30px 0;
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
+            line-height: 1.8;
         }
 
-        .back-button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: white;
-            color: #667eea;
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            background: var(--accent-color);
+            color: white;
             text-decoration: none;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
         }
 
-        .back-button:hover {
+        .button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 16px var(--accent-glow);
+            opacity: 0.9;
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: var(--glass-bg);
+            color: var(--text-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+        }
+
+        .button.secondary:hover {
+            background: var(--glass-border);
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--container-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 30px;
+                margin: 15px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .icon {
+                font-size: 60px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+
+            .theme-toggle {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" id="theme-toggle">🌗</button>
+
     <div class="container">
         <div class="icon"></div>
-        <h1>暂仅为Apple用户提供服务</h1>
-        <p>
-            抱歉，本网站目前仅针对 Apple 设备进行了优化，<br>
-            包括 iPhone、iPad、Mac 等设备。
-        </p>
+        <h1>暂仅为 Apple 用户提供服务</h1>
         <div class="info">
-            <p style="margin: 0;">
-                检测到您当前使用的是非 Apple 设备<br>
-                为了获得最佳体验，请使用 Apple 设备访问
-            </p>
+            检测到您当前使用的是非 Apple 设备<br>
+            请使用 Apple 设备访问
         </div>
-        <a href="javascript:history.back()" class="back-button">返回上一页</a>
     </div>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        const body = document.body;
+
+        // 从 localStorage 读取主题设置
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+        }
+
+        // 主题切换
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // 添加点击动画
+            themeToggle.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                themeToggle.style.transform = '';
+            }, 150);
+        });
+    </script>
 </body>
 </html>
