@@ -317,3 +317,150 @@ body.dark-mode .quick-link:hover {
         flex-direction: column;
     }
 }
+
+/* 清空缓存按钮样式 */
+.clear-cache-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    min-width: 140px;
+}
+
+.clear-cache-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.clear-cache-btn:active {
+    transform: translateY(0);
+}
+
+.clear-cache-btn.confirm {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    animation: pulse 0.5s ease-in-out;
+    box-shadow: 0 4px 12px rgba(255, 65, 108, 0.4);
+}
+
+.clear-cache-btn.confirm:hover {
+    box-shadow: 0 6px 20px rgba(255, 65, 108, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* 碎纸机动画容器 */
+.shredder-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* 纸片条 */
+.paper-strip {
+    position: absolute;
+    top: -100%;
+    width: 20px;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(240, 240, 240, 0.9) 50%,
+        rgba(255, 255, 255, 0.9) 100%
+    );
+    box-shadow: 
+        inset 2px 0 4px rgba(0, 0, 0, 0.1),
+        inset -2px 0 4px rgba(0, 0, 0, 0.1);
+    animation: shred 2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+body.dark-mode .paper-strip {
+    background: linear-gradient(
+        to bottom,
+        rgba(50, 50, 50, 0.9) 0%,
+        rgba(30, 30, 30, 0.9) 50%,
+        rgba(50, 50, 50, 0.9) 100%
+    );
+}
+
+@keyframes shred {
+    0% {
+        top: -100%;
+        opacity: 1;
+    }
+    10% {
+        top: -90%;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0.5;
+    }
+}
+
+/* 碎纸机顶部装饰 */
+.shredder-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(180deg, 
+        rgba(60, 60, 60, 0.95) 0%,
+        rgba(40, 40, 40, 0.9) 50%,
+        rgba(30, 30, 30, 0.85) 100%
+    );
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    animation: shredderAppear 0.3s ease forwards;
+}
+
+.shredder-top::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: repeating-linear-gradient(
+        90deg,
+        #555 0px,
+        #555 2px,
+        #333 2px,
+        #333 4px
+    );
+}
+
+@keyframes shredderAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

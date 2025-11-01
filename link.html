@@ -369,6 +369,12 @@
                             </div>
                         </div>
                     </div>
+                    <div class="settings-section">
+                        <h3>缓存管理</h3>
+                        <div class="setting-item">
+                            <button id="clearCacheBtn" class="clear-cache-btn">🗑️ 清空缓存</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -938,6 +944,7 @@
                 this.setupThemeEvents();
                 this.setupKeyboardEvents();
                 this.setupGlobalEvents();
+                this.setupClearCacheEvents();
             },
 
             setupDockEvents() {
@@ -1042,6 +1049,13 @@
                 
                 // 监听系统主题变化
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', this.handleSystemThemeChange.bind(this));
+            },
+
+            setupClearCacheEvents() {
+                const clearCacheBtn = document.getElementById('clearCacheBtn');
+                if (clearCacheBtn) {
+                    clearCacheBtn.addEventListener('click', this.handleClearCacheClick.bind(this));
+                }
             },
 
             // 事件处理方法
@@ -1265,6 +1279,88 @@
             setSearchLoading(isLoading) {
                 // 兼容方法，调用学术搜索加载状态
                 this.setScholarSearchLoading(isLoading);
+            },
+
+            handleClearCacheClick(e) {
+                const btn = e.currentTarget;
+                
+                // 如果按钮已经是确认状态
+                if (btn.classList.contains('confirm')) {
+                    // 执行清空缓存操作
+                    this.performClearCache();
+                } else {
+                    // 第一次点击，显示确认按钮
+                    btn.classList.add('confirm');
+                    btn.textContent = '❗确定吗❗';
+                    
+                    // 3秒后恢复原状
+                    setTimeout(() => {
+                        if (btn.classList.contains('confirm')) {
+                            btn.classList.remove('confirm');
+                            btn.textContent = '🗑️ 清空缓存';
+                        }
+                    }, 3000);
+                }
+            },
+
+            async performClearCache() {
+                // 播放碎纸机动画
+                this.playShredderAnimation();
+                
+                // 等待动画完成
+                await Utils.delay(2000);
+                
+                // 清空各种缓存
+                try {
+                    // 清空 localStorage
+                    localStorage.clear();
+                    
+                    // 清空 sessionStorage
+                    sessionStorage.clear();
+                    
+                    // 清空 Service Worker 缓存（如果有）
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(
+                            cacheNames.map(cacheName => caches.delete(cacheName))
+                        );
+                    }
+                    
+                    // 刷新页面
+                    window.location.reload(true);
+                } catch (error) {
+                    console.error('清空缓存失败:', error);
+                    ErrorManager.show('清空缓存失败，请手动刷新页面', 'error');
+                }
+            },
+
+            playShredderAnimation() {
+                // 创建碎纸机覆盖层
+                const overlay = document.createElement('div');
+                overlay.className = 'shredder-overlay';
+                
+                // 创建碎纸机顶部
+                const shredderTop = document.createElement('div');
+                shredderTop.className = 'shredder-top';
+                overlay.appendChild(shredderTop);
+                
+                // 创建纸片条
+                const stripCount = Math.floor(window.innerWidth / 20) + 1;
+                for (let i = 0; i < stripCount; i++) {
+                    const strip = document.createElement('div');
+                    strip.className = 'paper-strip';
+                    strip.style.left = `${i * 20}px`;
+                    strip.style.animationDelay = `${Math.random() * 0.3}s`;
+                    overlay.appendChild(strip);
+                }
+                
+                // 添加到页面
+                document.body.appendChild(overlay);
+                
+                // 动画结束后移除
+                setTimeout(() => {
+                    overlay.remove();
+                }, 2500);
             }
         };
         // Dock管理 - Dock Management
