@@ -125,10 +125,20 @@
             return false;
         };
         
-        // 页面加载完成后1秒自动隐藏dock
+        // 页面加载完成后1秒自动隐藏dock（仅在非移动设备上）
         window.addEventListener('load', function() {
             setTimeout(() => {
                 try {
+                    // 检测是否为移动设备
+                    const isMobile = Utils.isMobileDevice();
+                    console.log('设备类型检测:', isMobile ? '移动设备' : '桌面设备');
+                    
+                    // 如果是移动设备，不隐藏dock
+                    if (isMobile) {
+                        console.log('检测到移动设备，不隐藏dock');
+                        return;
+                    }
+                    
                     const dock = document.querySelector('.dock');
                     if (dock) {
                         // 创建底部指示器
@@ -477,6 +487,18 @@
                     console.warn(`Invalid URL: ${url}`);
                     return null;
                 }
+            },
+
+            // 检测是否为移动设备
+            isMobileDevice() {
+                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                // 检测移动设备的常见标识
+                const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+                // 检测触摸屏和小屏幕
+                const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                const isSmallScreen = window.innerWidth <= 768;
+                
+                return mobileRegex.test(userAgent) || (isTouchDevice && isSmallScreen);
             }
         };
 
@@ -1450,6 +1472,13 @@
             init() {
                 console.log('=== DockAutoHideManager 开始初始化 ===');
                 try {
+                    // 检测是否为移动设备
+                    const isMobile = Utils.isMobileDevice();
+                    if (isMobile) {
+                        console.log('检测到移动设备，跳过DockAutoHideManager初始化');
+                        return;
+                    }
+                    
                     this.setupHoverEvents();
                     this.lastScrollY = window.scrollY;
                     console.log('=== DockAutoHideManager 初始化完成 ===');
