@@ -17,17 +17,6 @@
     <script>
         (function() {
             'use strict';
-            function isAppleDevice() {
-                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-                const platform = navigator.platform || '';
-                
-                const isiOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-                const isMac = /Mac|Macintosh|MacIntel|MacPPC|Mac68K/.test(platform) || 
-                             /Mac/.test(userAgent);
-                const isiPad = (platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-                              /iPad/.test(userAgent);
-                return isiOS || isMac || isiPad;
-            }
             async function checkIPLocation() {
                 try {
                     const apis = [
@@ -57,10 +46,6 @@
                 }
             }
                         async function performChecks() {
-                if (!isAppleDevice()) {
-                    window.location.href = 'RefuseToResponse.html';
-                    return;
-                }                
                 const isChinaMainland = await checkIPLocation();
                 
                 if (isChinaMainland) {
