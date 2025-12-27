@@ -2,11 +2,12 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Yuhao</title>
   <link rel="icon" type="image/png" href="touxiang.png">
   <link rel="stylesheet" href="styles/variables.css">
   <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/safe-area.css">
   <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/animations.css">
@@ -14,56 +15,71 @@
 </head>
 <body>
 
-  <div class="intro">
-    <img src="touxiang.png" alt="Yuhao">
+  <a href="link.html" class="fixed-button back-button" title="前往链接库">↗</a>
+  <button class="fixed-button theme-toggle" type="button" title="切换主题">🌗</button>
+  <button id="back-to-top" class="fixed-button back-to-top" title="返回顶部">↑</button>
+
+  <div class="main-container">
+    <section class="container hero-card reveal-on-scroll">
+      <div class="hero-top">
+        <img src="touxiang.png" alt="Yuhao" class="hero-avatar">
+        <div class="hero-text">
+          <h1 class="main-title">嗨！这里是Yuhao</h1>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="container section-card reveal-on-scroll">
+      <div class="section-header">
+        <p class="eyebrow">Stay in touch</p>
+        <h2>联系与最近动态</h2>
+        <p>欢迎交流项目、研究或合作，主页和链接库随时更新。</p>
+      </div>
+      <div class="quick-links info-grid">
+        <a class="link-item" href="mailto:yoaholyn@icloud.com">
+          <div class="favicon text-favicon">✉️</div>
+          <span>邮件直达</span>
+        </a>
+        <a class="link-item" href="https://github.com/Xstime" target="_blank">
+          <div class="favicon text-favicon">🐱</div>
+          <span>GitHub · Xstime</span>
+        </a>
+        <a class="link-item" href="link.html">
+          <div class="favicon text-favicon">🔗</div>
+          <span>由此出发</span>
+        </a>
+      </div>
+    </section>
   </div>
 
-  <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
-
-  <header id="main-header" class="reveal">
-    <h1>嗨！这里是Yuhao</h1>
-    <p>欢迎来到我的主页</p>
-    <div>
-      <a href="link.html" class="cta-button">Go Further</a>
-    </div>
-  </header>
-
-  <!-- 联系方式 -->
-  <section id="contact" class="reveal">
-    <h2>📫 联系我</h2>
-    <p>欢迎交流项目、研究或合作！</p>
-    <a href="mailto:yoaholyn@icloud.com" class="cta-button">📧 发邮件</a>
-    <a href="https://github.com/Xstime" target="_blank" class="cta-button">🐙 GitHub</a>
-  </section>
-
-  <button id="back-to-top" class="cta-button" title="返回顶部">↑</button>
-
   <script>
-    // 主题切换
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-    }
+    const themeToggle = document.querySelector('.theme-toggle');
+    const backToTop = document.getElementById('back-to-top');
+    const revealTargets = document.querySelectorAll('.reveal-on-scroll');
 
-    // Scroll-Reveal
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('reveal');
-          io.unobserve(e.target);
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      themeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌗';
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal');
+          observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.2 });
-    [document.getElementById('main-header'),
-      document.getElementById('contact')
-    ].forEach(el => io.observe(el));
 
-    // 返回顶部按钮功能
-    const backToTop = document.getElementById('back-to-top');
+    revealTargets.forEach((target) => observer.observe(target));
+
     window.addEventListener('scroll', () => {
-      backToTop.style.display = window.scrollY > 200 ? 'block' : 'none';
+      backToTop.style.display = window.scrollY > 200 ? 'flex' : 'none';
     });
-    backToTop.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
 
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   </script>
 </body>
 </html>

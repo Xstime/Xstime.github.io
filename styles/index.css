@@ -1,32 +1,132 @@
 /* Index-specific styles - index.html 特定样式 */
 
-/* Back to top button */
-#back-to-top {
+.main-container {
+    padding: 80px 20px 120px;
+}
+
+.hero-card,
+.section-card {
+    margin: 20px auto;
+}
+
+.hero-card {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.hero-top {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.hero-avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 24px;
+    object-fit: cover;
+    background: var(--container-bg);
+    box-shadow: var(--glass-shadow);
+}
+
+.hero-text {
+    flex: 1;
+    min-width: 240px;
+}
+
+.eyebrow {
+    margin: 0 0 6px;
+    color: rgba(29, 29, 31, 0.65);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+body.dark-mode .eyebrow {
+    color: rgba(245, 245, 247, 0.7);
+}
+
+.hero-text p {
+    margin: 12px 0 18px;
+    color: var(--text-color);
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.section-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.section-header {
+    margin-bottom: 8px;
+}
+
+.section-card h2 {
+    margin: 6px 0;
+    font-size: 28px;
+    color: var(--text-color);
+}
+
+.section-card p {
+    margin: 8px 0 16px;
+}
+
+.info-grid {
+    margin-top: 10px;
+}
+
+.info-grid .link-item {
+    aspect-ratio: 1;
+    gap: 10px;
+}
+
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.reveal-on-scroll.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.back-to-top {
     position: fixed;
-    left: 30px;
-    bottom: 40px;
+    right: 20px;
+    bottom: 30px;
     z-index: 1001;
     display: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
     font-size: 20px;
-    padding: 0;
     align-items: center;
     justify-content: center;
 }
 
-/* Index page specific layout adjustments */
-header {
-    min-height: 100vh;
-}
+@media (max-width: 768px) {
+    .main-container {
+        padding: 60px 12px 110px;
+    }
 
-h1 {
-    font-size: 3rem;
-    margin: 0;
-}
+    .hero-avatar {
+        width: 110px;
+        height: 110px;
+    }
 
-p {
-    font-size: 1.25rem;
-    margin: 20px 0 40px;
+    .hero-actions {
+        gap: 10px;
+    }
+
+    .section-card h2 {
+        font-size: 24px;
+    }
 }

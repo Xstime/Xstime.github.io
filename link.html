@@ -14,40 +14,27 @@
     <link rel="stylesheet" href="styles/link.css">
     <link rel="stylesheet" href="styles/loading.css">
     
-    <!-- IP和操作系统检测脚本 -->
     <script>
         (function() {
             'use strict';
-            
-            // 检测操作系统
             function isAppleDevice() {
                 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
                 const platform = navigator.platform || '';
                 
-                // 检测 iOS 设备
                 const isiOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-                
-                // 检测 macOS
                 const isMac = /Mac|Macintosh|MacIntel|MacPPC|Mac68K/.test(platform) || 
                              /Mac/.test(userAgent);
-                
-                // 检测 iPadOS (iOS 13+ iPad 可能显示为 Mac)
                 const isiPad = (platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
                               /iPad/.test(userAgent);
-                
                 return isiOS || isMac || isiPad;
             }
-            
-            // 检测 IP 地址是否属于中国大陆
             async function checkIPLocation() {
                 try {
-                    // 使用多个免费 IP 地理位置 API 作为备选
                     const apis = [
                         'https://ipapi.co/json/',
                         'https://ip-api.com/json/',
                         'https://ipinfo.io/json'
                     ];
-                    
                     for (const api of apis) {
                         try {
                             const response = await fetch(api, { 
@@ -58,90 +45,49 @@
                             if (!response.ok) continue;
                             
                             const data = await response.json();
-                            
-                            // 检查国家代码
                             const countryCode = data.country || data.country_code || data.countryCode;
-                            
-                            console.log('🌍 IP检测结果:', {
-                                ip: data.ip || data.query,
-                                country: countryCode,
-                                api: api
-                            });
-                            
                             return countryCode === 'CN';
                         } catch (err) {
-                            console.warn('⚠️ API请求失败:', api, err);
                             continue;
                         }
                     }
-                    
-                    // 如果所有 API 都失败，默认不在中国大陆（使用 Google）
-                    console.warn('⚠️ 所有IP检测API都失败，默认使用Google');
                     return false;
                     
                 } catch (error) {
-                    console.error('❌ IP检测错误:', error);
-                    return false; // 默认不在中国大陆
                 }
             }
-            
-            // 主检测逻辑
-            async function performChecks() {
-                console.log('🔍 开始设备和IP检测...');
-                
-                // 1. 检查是否为 Apple 设备
+                        async function performChecks() {
                 if (!isAppleDevice()) {
-                    console.log('❌ 非Apple设备，重定向到提示页面');
                     window.location.href = 'RefuseToResponse.html';
                     return;
-                }
-                
-                console.log('✅ Apple设备检测通过');
-                
-                // 2. 检查 IP 位置
+                }                
                 const isChinaMainland = await checkIPLocation();
                 
-                // 3. 根据 IP 位置设置搜索引擎
                 if (isChinaMainland) {
-                    console.log('🇨🇳 检测到中国大陆IP，设置默认搜索引擎为百度');
                     sessionStorage.setItem('defaultSearchEngine', 'baidu');
                 } else {
-                    console.log('🌍 检测到非中国大陆IP，设置默认搜索引擎为Google');
                     sessionStorage.setItem('defaultSearchEngine', 'google');
                 }
             }
-            
-            // 页面加载时执行检测
             performChecks();
         })();
     </script>
 
-    <script>
-        console.log('🟢 定时隐藏脚本开始');
-        
-        // 全局错误捕获
+    <script>        
         window.onerror = function(msg, url, line, col, error) {
-            console.error('🚨 JavaScript错误:', msg, 'at', line + ':' + col);
             return false;
         };
         
-        // 页面加载完成后1秒自动隐藏dock（仅在非移动设备上）
         window.addEventListener('load', function() {
             setTimeout(() => {
                 try {
-                    // 检测是否为移动设备
-                    const isMobile = Utils.isMobileDevice();
-                    console.log('设备类型检测:', isMobile ? '移动设备' : '桌面设备');
-                    
-                    // 如果是移动设备，不隐藏dock
+                    const isMobile = Utils.isMobileDevice();                    
                     if (isMobile) {
-                        console.log('检测到移动设备，不隐藏dock');
                         return;
                     }
                     
                     const dock = document.querySelector('.dock');
                     if (dock) {
-                        // 创建底部指示器
                         const indicator = document.createElement('div');
                         indicator.className = 'bottom-indicator';
                         indicator.style.cssText = `
@@ -159,12 +105,9 @@
                             cursor: pointer;
                         `;
                         document.body.appendChild(indicator);
-                        // 隐藏dock (向正下隐藏)
                         dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
                         dock.style.setProperty('opacity', '0', 'important');
                         dock.style.setProperty('transition', 'all 0.3s ease', 'important');
-                        
-                        // 鼠标悬停指示器时显示dock
                         let showTimeout = null;
                         indicator.addEventListener('mouseenter', function() {
                             if (showTimeout) {
@@ -176,7 +119,6 @@
                             dock.style.setProperty('opacity', '1', 'important');
                             indicator.style.opacity = '0';
                         });
-                        // 鼠标离开指示器时设置3秒延迟隐藏
                         indicator.addEventListener('mouseleave', function() {
                             showTimeout = setTimeout(function() {
                                 dock.style.setProperty('transform', 'translateX(-50%) translateY(100%)', 'important');
@@ -199,7 +141,7 @@
     <button class="fixed-button theme-toggle">🌗</button>
     <a href="http://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
 
-    <!-- 全局加载遮罩 - Global Loading Overlay -->
+    <!-- 全局加载遮罩 -->
     <div id="global-loading" class="loading-overlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
@@ -207,7 +149,7 @@
         </div>
     </div>
 
-    <!-- 全局错误提示 - Global Error Toast -->
+    <!-- 全局错误提示 -->
     <div id="error-toast" class="error-toast">
         <div class="error-content">
             <span class="error-icon">⚠️</span>
@@ -216,15 +158,15 @@
         </div>
     </div>
 
-    <!-- 主内容容器 - Main Content Container -->
+    <!-- 主内容容器 -->
     <div class="main-container">
         
-        <!-- 内容卡片1：由此出发 - Content Card 1: Launch Pad -->
+        <!-- 内容卡片1：由此出发 -->
         <div id="content-home" class="content-card active">
             <div class="container">
                 <h1 class="main-title">由此出发</h1>
                 
-                <!-- 主搜索框 - Main Search Box -->
+                <!-- 主搜索框 -->
                 <div class="main-search-container">
                     <div class="search-box main-search-box">
                         <input type="text" id="main-search-input" placeholder="搜索..." class="search-input main-search-input">
@@ -260,7 +202,7 @@
             </div>
         </div>
 
-        <!-- 内容卡片2：搜索发现 - Content Card 2: Search & Discovery -->
+        <!-- 内容卡片2：搜索发现 -->
         <div id="content-search" class="content-card">
             <div class="container">
                 <h1 class="main-title">学术资源</h1>
@@ -311,7 +253,7 @@
             </div>
         </div>
 
-        <!-- 内容卡片3：编码资源 - Content Card 3: Coding Resources -->
+        <!-- 内容卡片3：编码资源 -->
         <div id="content-coding" class="content-card">
             <div class="container">
                 <h1 class="main-title">编码资源</h1>
@@ -363,7 +305,7 @@
             </div>
         </div>
 
-        <!-- 内容卡片4：系统设置 - Content Card 4: System Settings -->
+        <!-- 内容卡片4：系统设置 -->
         <div id="content-settings" class="content-card">
             <div class="container">
                 <h1 class="main-title">系统设置</h1>
@@ -409,12 +351,7 @@
             <span class="dock-label">设置</span>
         </a>
     </div>
-
-    <!-- iOS-style bottom indicator -->
-    <div class="bottom-indicator"></div>
-
     <script>
-        // 全局配置常量 - Global Configuration Constants
         const CONFIG = {
             ANIMATION_DURATION: 500,
             LOADING_DELAY: 300,
@@ -425,7 +362,6 @@
             RETRY_DELAY: 1000
         };
 
-        // 全局状态管理 - Global State Management
         const AppState = {
             isLoading: false,
             currentTheme: 'auto',
@@ -435,9 +371,7 @@
             isOffline: false
         };
 
-        // 工具函数 - Utility Functions
         const Utils = {
-            // 防抖函数
             debounce(func, wait) {
                 let timeout;
                 return function executedFunction(...args) {
@@ -450,7 +384,6 @@
                 };
             },
 
-            // 节流函数
             throttle(func, limit) {
                 let inThrottle;
                 return function() {
@@ -464,12 +397,10 @@
                 }
             },
 
-            // 延迟执行
             delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
             },
 
-            // 安全的DOM操作
             safeQuerySelector(selector) {
                 try {
                     return document.querySelector(selector);
@@ -479,7 +410,6 @@
                 }
             },
 
-            // 获取域名
             getDomain(url) {
                 try {
                     return new URL(url).hostname;
@@ -489,12 +419,9 @@
                 }
             },
 
-            // 检测是否为移动设备
             isMobileDevice() {
                 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-                // 检测移动设备的常见标识
                 const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-                // 检测触摸屏和小屏幕
                 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                 const isSmallScreen = window.innerWidth <= 768;
                 
@@ -502,7 +429,6 @@
             }
         };
 
-        // 加载状态管理 - Loading State Management
         const LoadingManager = {
             show(text = '正在加载...') {
                 const overlay = document.getElementById('global-loading');
@@ -533,7 +459,6 @@
             }
         };
 
-        // 错误处理管理 - Error Handling Management
         const ErrorManager = {
             show(message, type = 'error', duration = CONFIG.ERROR_DISPLAY_TIME) {
                 const toast = document.getElementById('error-toast');
@@ -541,7 +466,6 @@
                 const iconEl = toast?.querySelector('.error-icon');
                 
                 if (toast && messageEl && iconEl) {
-                    // 清除之前的隐藏计时器和动画类
                     if (this.hideTimer) {
                         clearTimeout(this.hideTimer);
                     }
@@ -550,8 +474,6 @@
                     messageEl.textContent = message;
                     iconEl.textContent = type === 'warning' ? '⚠️' : type === 'success' ? '✅' : '❌';
                     toast.className = `error-toast ${type} show`;
-                    
-                    // 自动隐藏
                     this.hideTimer = setTimeout(() => this.hide(), duration);
                 }
             },
@@ -559,16 +481,12 @@
             hide() {
                 const toast = document.getElementById('error-toast');
                 if (toast) {
-                    // 添加隐藏动画类
                     toast.classList.add('hide');
                     toast.classList.remove('show');
-                    
-                    // 动画完成后完全隐藏
                     setTimeout(() => {
                         toast.style.visibility = 'hidden';
                         toast.classList.remove('hide');
-                    }, 300); // 与CSS动画时间匹配
-                    
+                    }, 300);
                     if (this.hideTimer) {
                         clearTimeout(this.hideTimer);
                         this.hideTimer = null;
@@ -596,11 +514,9 @@
             }
         };
 
-        // 全局错误处理函数
         window.hideErrorToast = () => ErrorManager.hide();
         window.retryLoadLinks = () => LinkManager.loadWithRetry();
 
-        // 搜索引擎管理 - Search Engine Management
         const SearchManager = {
             defaultEngine: sessionStorage.getItem('defaultSearchEngine') || 'google',
             currentEngine: sessionStorage.getItem('defaultSearchEngine') || 'google',
@@ -610,20 +526,16 @@
                 const searchButton = document.getElementById('main-search-btn');
                 if (!searchIcon || !searchButton) return;
                 
-                // 清空当前内容
                 searchIcon.innerHTML = '';
                 
                 switch (engine) {
                     case 'google':
-                        // 尝试使用本地图标，如果失败则使用文本
                         const googleImg = document.createElement('img');
                         googleImg.setAttribute('src', 'icon/google.com.png');
                         googleImg.setAttribute('alt', 'Google');
                         googleImg.setAttribute('style', 'width: 16px; height: 16px;');
                         
-                        // 设置错误处理 - 避免使用Google的favicon服务
                         googleImg.addEventListener('error', function() {
-                            // 直接使用文本图标而不是Google服务
                             const textIcon = document.createElement('span');
                             textIcon.textContent = 'G';
                             textIcon.style.cssText = `
@@ -646,13 +558,10 @@
                         break;
                         
                     case 'baidu':
-                        // 使用本地图标或文本
                         const baiduImg = document.createElement('img');
                         baiduImg.setAttribute('src', 'icon/baidu.com.png');
                         baiduImg.setAttribute('alt', '百度');
                         baiduImg.setAttribute('style', 'width: 16px; height: 16px;');
-                        
-                        // 设置错误处理
                         baiduImg.addEventListener('error', function() {
                             const textIcon = document.createElement('span');
                             textIcon.textContent = '百';
@@ -698,25 +607,19 @@
                         searchUrl = `https://www.baidu.com/s?wd=${encodedQuery}`;
                         break;
                     case 'scholar':
-                        // 学术搜索也要根据当前引擎选择
                         if (this.currentEngine === 'baidu') {
-                            // 使用百度学术
                             searchUrl = `https://xueshu.baidu.com/s?wd=${encodedQuery}`;
                         } else {
-                            // 默认使用Google Scholar
                             searchUrl = `https://scholar.google.com/scholar?q=${encodedQuery}`;
                         }
                         break;
                     case 'coding':
-                        // 编码搜索优先使用GitHub和Stack Overflow
                         searchUrl = `https://github.com/search?q=${encodedQuery}&type=repositories`;
-                        // 同时在新标签页中打开Stack Overflow搜索
                         setTimeout(() => {
                             window.open(`https://stackoverflow.com/search?q=${encodedQuery}`, '_blank');
                         }, 100);
                         break;
                     default:
-                        // 默认情况下根据当前检测到的引擎选择
                         if (this.currentEngine === 'baidu') {
                             searchUrl = `https://www.baidu.com/s?wd=${encodedQuery}`;
                         } else {
@@ -728,7 +631,6 @@
             }
         };
 
-        // 链接管理 - Link Management
         const LinkManager = {
             async load() {
                 try {
@@ -747,10 +649,9 @@
                     
                     AppState.links = links;
                     this.render(links);
-                    AppState.retryCount = 0; // 重置重试计数
+                    AppState.retryCount = 0; 
                     
                 } catch (error) {
-                    console.error('加载链接失败:', error);
                     this.handleError(error);
                 } finally {
                     LoadingManager.hideSection('link');
@@ -789,7 +690,6 @@
                 
                 links.forEach(link => {
                     if (!link.url || !link.name) {
-                        console.warn('跳过无效链接:', link);
                         return;
                     }
                     
@@ -805,15 +705,11 @@
                 linkItem.href = link.url;
                 linkItem.target = '_blank';
                 linkItem.className = 'link-item';
-
-                // 创建图标
                 const favicon = this.createFaviconElement(link.url);
                 linkItem.appendChild(favicon);
-                
-                // 创建名称
                 const nameSpan = document.createElement('span');
                 nameSpan.textContent = link.name;
-                nameSpan.title = link.name; // 添加工具提示
+                nameSpan.title = link.name; 
                 linkItem.appendChild(nameSpan);
 
                 return linkItem;
@@ -822,23 +718,19 @@
             createFaviconElement(url) {
                 const favicon = document.createElement('img');
                 favicon.className = 'favicon';
-                favicon.loading = 'lazy'; // 添加懒加载
-                
+                favicon.loading = 'lazy';
                 const domain = Utils.getDomain(url);
                 if (domain) {
                     favicon.src = `icon/${domain}.png`;
                 } else {
                     favicon.style.display = 'none';
                 }
-                
                 return favicon;
             },
         };
 
-        // 主题管理 - Theme Management
         const ThemeManager = {
             init() {
-                // 从本地存储恢复主题设置
                 const savedTheme = localStorage.getItem('theme') || 'auto';
                 this.setTheme(savedTheme);
                 this.updateThemeUI(savedTheme);
@@ -853,7 +745,6 @@
                 } else if (theme === 'light') {
                     document.body.classList.remove('dark-mode');
                 } else {
-                    // Auto theme
                     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
                     document.body.classList.toggle('dark-mode', isDarkMode);
                 }
@@ -874,29 +765,22 @@
             }
         };
 
-        // 内容切换管理 - Content Switching Management
         const ContentManager = {
             menuOrder: { 'home': 0, 'search': 1, 'coding': 2, 'settings': 3 },
             
             init() {
-                // 确保只有当前活动的内容卡片显示，其他隐藏
                 this.initializeContentCards();
-                // 确保菜单项状态正确
                 this.updateActiveStates(AppState.currentContent);
             },
             
             initializeContentCards() {
-                // 获取所有内容卡片
                 const contentCards = document.querySelectorAll('.content-card');
                 
                 contentCards.forEach(card => {
                     const cardId = card.id;
                     const contentType = cardId.replace('content-', '');
-                    
-                    // 清理所有动画类
                     card.classList.remove('active', 'prev', 'next', 'from-right', 'from-left', 'exit-left', 'exit-right');
                     
-                    // 只给当前活动内容添加 active 类
                     if (contentType === AppState.currentContent) {
                         card.classList.add('active');
                     }
@@ -919,38 +803,25 @@
             animateTransition(currentContent, targetContent, isMovingRight) {
                 const currentCard = document.getElementById(`content-${currentContent}`);
                 const targetCard = document.getElementById(`content-${targetContent}`);
-                
                 if (!currentCard || !targetCard) return;
-                
-                // 添加退出动画
                 currentCard.classList.add(isMovingRight ? 'exit-left' : 'exit-right');
-                
                 setTimeout(() => {
-                    // 清理所有状态
                     document.querySelectorAll('.content-card').forEach(card => {
                         card.classList.remove('active', 'prev', 'next', 'from-right', 'from-left', 'exit-left', 'exit-right');
                     });
-                    
-                    // 激活目标卡片
                     targetCard.classList.add('active');
                     targetCard.classList.add(isMovingRight ? 'from-right' : 'from-left');
-                    
-                    // 清理动画类
                     setTimeout(() => {
                         targetCard.classList.remove('from-right', 'from-left');
                     }, CONFIG.ANIMATION_DURATION);
-                    
                 }, 50);
             },
 
             updateActiveStates(targetContent) {
-                // 更新菜单项状态
                 document.querySelectorAll('.dock-item').forEach(item => {
                     const isActive = item.getAttribute('data-content') === targetContent;
                     item.classList.toggle('active', isActive);
                 });
-                
-                // 更新气泡位置
                 const targetMenuItem = document.querySelector(`.dock-item[data-content="${targetContent}"]`);
                 if (targetMenuItem) {
                     DockManager.moveBubbleTo(targetMenuItem);
@@ -958,7 +829,6 @@
             }
         };
 
-        // 事件处理管理 - Event Handler Management
         const EventManager = {
             init() {
                 this.setupDockEvents();
@@ -976,7 +846,6 @@
                     item.addEventListener('mouseenter', this.handleDockItemHover.bind(this));
                     item.addEventListener('mouseleave', this.handleDockItemLeave.bind(this));
                     
-                    // 触摸事件支持
                     if ('ontouchstart' in window) {
                         item.addEventListener('touchstart', this.handleDockItemTouch.bind(this));
                         item.addEventListener('touchend', this.handleDockItemTouchEnd.bind(this));
@@ -991,7 +860,6 @@
             },
 
             setupSearchEvents() {
-                // 主搜索框事件
                 const mainSearchInput = document.getElementById('main-search-input');
                 const mainSearchButton = document.getElementById('main-search-btn');
                 
@@ -1007,7 +875,6 @@
                     });
                 }
 
-                // 学术搜索框事件
                 const scholarSearchInput = document.getElementById('scholar-search-input');
                 const scholarSearchButton = document.getElementById('scholar-search-btn');
                 
@@ -1023,7 +890,6 @@
                     });
                 }
 
-                // 编码搜索框事件
                 const codingSearchInput = document.getElementById('coding-search-input');
                 const codingSearchButton = document.getElementById('coding-search-btn');
                 
@@ -1039,7 +905,6 @@
                     });
                 }
 
-                // 标签点击搜索
                 const suggestionTags = document.querySelectorAll('.tag');
                 suggestionTags.forEach(tag => {
                     tag.addEventListener('click', this.handleTagClick.bind(this));
@@ -1068,8 +933,6 @@
 
             setupGlobalEvents() {
                 window.addEventListener('resize', Utils.debounce(this.handleResize.bind(this), 250));
-                
-                // 监听系统主题变化
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', this.handleSystemThemeChange.bind(this));
             },
 
@@ -1080,7 +943,6 @@
                 }
             },
 
-            // 事件处理方法
             handleDockItemClick(e) {
                 e.preventDefault();
                 const targetContent = e.currentTarget.getAttribute('data-content');
@@ -1136,7 +998,7 @@
 
                 try {
                     this.setMainSearchLoading(true);
-                    await Utils.delay(300); // 短暂延迟以显示加载状态
+                    await Utils.delay(300);
                     SearchManager.search(query);
                 } catch (error) {
                     ErrorManager.show('搜索失败，请重试', 'error');
@@ -1186,7 +1048,6 @@
             },
 
             handleSearch() {
-                // 保留原有的搜索方法以兼容
                 this.handleScholarSearch();
             },
 
@@ -1197,14 +1058,12 @@
             },
 
             handleSearchInput(e) {
-                // 可以在这里添加搜索建议逻辑
                 const query = e.target.value.trim();
                 console.log('搜索输入:', query);
             },
 
             handleTagClick(e) {
                 const query = e.target.textContent;
-                // 根据当前页面选择搜索引擎
                 let searchEngine;
                 if (AppState.currentContent === 'search') {
                     searchEngine = 'scholar';
@@ -1223,7 +1082,6 @@
             },
 
             handleKeyDown(e) {
-                // 键盘快捷键
                 if (e.ctrlKey || e.metaKey) {
                     switch(e.key) {
                         case '1':
@@ -1245,14 +1103,12 @@
                     }
                 }
                 
-                // ESC 键隐藏错误提示
                 if (e.key === 'Escape') {
                     ErrorManager.hide();
                 }
             },
 
             handleResize() {
-                // 响应式处理
                 console.log('窗口大小改变');
             },
 
@@ -1299,23 +1155,16 @@
             },
 
             setSearchLoading(isLoading) {
-                // 兼容方法，调用学术搜索加载状态
                 this.setScholarSearchLoading(isLoading);
             },
 
             handleClearCacheClick(e) {
                 const btn = e.currentTarget;
-                
-                // 如果按钮已经是确认状态
                 if (btn.classList.contains('confirm')) {
-                    // 执行清空缓存操作
                     this.performClearCache();
                 } else {
-                    // 第一次点击，显示确认按钮
                     btn.classList.add('confirm');
                     btn.textContent = '❗确定吗❗';
-                    
-                    // 3秒后恢复原状
                     setTimeout(() => {
                         if (btn.classList.contains('confirm')) {
                             btn.classList.remove('confirm');
@@ -1326,21 +1175,11 @@
             },
 
             async performClearCache() {
-                // 播放碎纸机动画
                 this.playShredderAnimation();
-                
-                // 等待动画完成
                 await Utils.delay(2000);
-                
-                // 清空各种缓存
                 try {
-                    // 清空 localStorage
                     localStorage.clear();
-                    
-                    // 清空 sessionStorage
                     sessionStorage.clear();
-                    
-                    // 清空 Service Worker 缓存（如果有）
                     if ('caches' in window) {
                         const cacheNames = await caches.keys();
                         await Promise.all(
@@ -1348,25 +1187,18 @@
                         );
                     }
                     
-                    // 刷新页面
                     window.location.reload(true);
                 } catch (error) {
-                    console.error('清空缓存失败:', error);
                     ErrorManager.show('清空缓存失败，请手动刷新页面', 'error');
                 }
             },
 
             playShredderAnimation() {
-                // 创建碎纸机覆盖层
                 const overlay = document.createElement('div');
                 overlay.className = 'shredder-overlay';
-                
-                // 创建碎纸机顶部
                 const shredderTop = document.createElement('div');
                 shredderTop.className = 'shredder-top';
                 overlay.appendChild(shredderTop);
-                
-                // 创建纸片条
                 const stripCount = Math.floor(window.innerWidth / 20) + 1;
                 for (let i = 0; i < stripCount; i++) {
                     const strip = document.createElement('div');
@@ -1376,10 +1208,7 @@
                     overlay.appendChild(strip);
                 }
                 
-                // 添加到页面
                 document.body.appendChild(overlay);
-                
-                // 动画结束后移除
                 setTimeout(() => {
                     overlay.remove();
                 }, 2500);
@@ -1411,7 +1240,6 @@
                 bubble.style.opacity = '1';
                 bubble.style.transform = 'scale(1)';
                 
-                // 添加发光效果
                 const isDarkMode = document.body.classList.contains('dark-mode');
                 const glowColor = isDarkMode ? 'rgba(10, 132, 255, 0.2)' : 'rgba(0, 113, 227, 0.15)';
                 
@@ -1459,7 +1287,6 @@
             }
         };
 
-        // Dock自动隐藏管理 - Dock Auto Hide Management
         const DockAutoHideManager = {
             isAtBottom: false,
             isDockHidden: false,
@@ -1467,115 +1294,76 @@
             scrollDirection: 'up',
             isMouseOverIndicator: false,
             hideTimeout: null,
-            showTimeout: null, // 新增：用于3秒显示计时
+            showTimeout: null, 
 
             init() {
-                console.log('=== DockAutoHideManager 开始初始化 ===');
                 try {
-                    // 检测是否为移动设备
                     const isMobile = Utils.isMobileDevice();
                     if (isMobile) {
-                        console.log('检测到移动设备，跳过DockAutoHideManager初始化');
                         return;
                     }
-                    
                     this.setupHoverEvents();
                     this.lastScrollY = window.scrollY;
-                    console.log('=== DockAutoHideManager 初始化完成 ===');
-                    
-
                 } catch (error) {
-                    console.error('DockAutoHideManager 初始化失败:', error);
                 }
             },
 
             setupHoverEvents() {
-                console.log('设置悬停事件...');
                 const dock = document.querySelector('.dock');
                 const indicator = document.querySelector('.bottom-indicator');
-
-                console.log('Dock元素:', dock);
-                console.log('Indicator元素:', indicator);
-
                 if (indicator) {
-                    // 鼠标进入指示器
                     indicator.addEventListener('mouseenter', () => {
-                        console.log('鼠标进入指示器');
                         this.isMouseOverIndicator = true;
-                        
-                        // 清除任何现有的计时器
                         this.clearShowTimeout();
                         this.clearHideTimeout();
-                        
                         if (this.isDockHidden) {
                             this.showDock();
                         }
                     });
 
-                    // 鼠标离开指示器
                     indicator.addEventListener('mouseleave', () => {
-                        console.log('鼠标离开指示器，设置3秒后隐藏');
                         this.isMouseOverIndicator = false;
-                        
                         if (this.isDockHidden === false) {
-                            // 设置3秒后隐藏
                             this.scheduleShowTimeout();
                         }
                     });
 
-                    // 点击指示器
                     indicator.addEventListener('click', (e) => {
-                        console.log('点击指示器');
                         e.preventDefault();
                         e.stopPropagation();
                         if (this.isDockHidden) {
                             this.showDock();
-                            // 显示3秒后再次隐藏
                             this.scheduleShowTimeout();
                         }
                     });
-                    console.log('指示器事件绑定完成');
                 }
 
                 if (dock) {
-                    // 鼠标进入dock时
                     dock.addEventListener('mouseenter', () => {
-                        console.log('鼠标进入dock');
                         if (this.isDockHidden) {
                             this.showDock();
                         }
-                        // 清除所有计时器
                         this.clearHideTimeout();
                         this.clearShowTimeout();
                     });
 
-                    // 鼠标离开dock时
                     dock.addEventListener('mouseleave', () => {
-                        console.log('鼠标离开dock');
                         if (!this.isMouseOverIndicator) {
-                            // 设置3秒后隐藏
                             this.scheduleShowTimeout();
                         }
                     });
-                    console.log('Dock事件绑定完成');
                 }
-                console.log('悬停事件设置完成');
             },
             scheduleHideDock() {
-                console.log('计划隐藏dock (800ms后)');
                 this.clearHideTimeout();
                 this.hideTimeout = setTimeout(() => {
                     if (this.isAtBottom && !this.isMouseOverIndicator) {
-                        console.log('执行隐藏dock');
                         this.hideDock();
-                    } else {
-                        console.log('取消隐藏dock - 条件不满足');
                     }
-                }, 800); // 延迟800ms后隐藏
+                }, 800); 
             },
 
             hideDock() {
-                console.log('隐藏dock');
                 const dock = document.querySelector('.dock');
                 const indicator = document.querySelector('.bottom-indicator');
                 
@@ -1583,17 +1371,14 @@
                     dock.classList.add('hidden');
                     dock.classList.remove('showing');
                     this.isDockHidden = true;
-                    console.log('Dock已隐藏');
                 }
                 
                 if (indicator) {
                     indicator.classList.add('visible');
-                    console.log('指示器已显示');
                 }
             },
 
             showDock() {
-                console.log('显示dock');
                 const dock = document.querySelector('.dock');
                 const indicator = document.querySelector('.bottom-indicator');
                 
@@ -1602,19 +1387,16 @@
                     dock.classList.add('showing');
                     this.isDockHidden = false;
                     
-                    // 恢复parallax位置，但需要延迟执行避免被CSS transition覆盖
                     setTimeout(() => {
                         if (!this.isDockHidden) {
                             const parallax = this.lastScrollY * CONFIG.PARALLAX_FACTOR;
                             dock.style.transform = `translateX(-50%) translateY(${parallax}px)`;
                         }
                     }, 100);
-                    console.log('Dock已显示');
                 }
                 
                 if (indicator) {
                     indicator.classList.remove('visible');
-                    console.log('指示器已隐藏');
                 }
             },
 
@@ -1622,15 +1404,12 @@
                 if (this.hideTimeout) {
                     clearTimeout(this.hideTimeout);
                     this.hideTimeout = null;
-                    console.log('清除隐藏计时器');
                 }
             },
 
             scheduleShowTimeout() {
-                console.log('设置3秒后隐藏dock');
                 this.clearShowTimeout();
                 this.showTimeout = setTimeout(() => {
-                    console.log('3秒时间到，隐藏dock');
                     if (!this.isMouseOverIndicator) {
                         this.hideDock();
                     }
@@ -1642,58 +1421,33 @@
                 if (this.showTimeout) {
                     clearTimeout(this.showTimeout);
                     this.showTimeout = null;
-                    console.log('清除3秒显示计时器');
                 }
             }
         };
 
-        // 应用初始化 - Application Initialization
         const App = {
             async init() {
                 try {
                     LoadingManager.show('正在初始化应用...');
-                    
-                    // 预加载关键资源
                     this.preloadResources();
-                    
-                    // 初始化各个管理器
-                    console.log('开始初始化各个管理器...');
                     ThemeManager.init();
-                    console.log('ThemeManager 初始化完成');
                     DockManager.init();
-                    console.log('DockManager 初始化完成');
-                    // DockAutoHideManager 已被新版本替换，不再需要初始化
                     ContentManager.init();
-                    console.log('ContentManager 初始化完成');
                     EventManager.init();
-                    console.log('EventManager 初始化完成');
                     
-                    // 根据IP检测结果设置默认搜索引擎图标
                     const defaultEngine = sessionStorage.getItem('defaultSearchEngine') || 'google';
-                    SearchManager.updateSearchIcon(defaultEngine);
-                    console.log('搜索引擎初始化完成，当前引擎:', defaultEngine);
-                    
-                    // 加载链接数据
+                    SearchManager.updateSearchIcon(defaultEngine);                    
                     await LinkManager.load();
-                    
-                    // 性能优化：预加载图标
                     this.preloadIcons();
-                    
-                    // 初始化完成
                     LoadingManager.hide();
-                    
-                    // 显示使用提示（仅首次访问）
                     this.showFirstTimeHints();
-                    
                 } catch (error) {
-                    console.error('应用初始化失败:', error);
                     LoadingManager.hide();
                     ErrorManager.show('应用初始化失败，请刷新页面重试', 'error');
                 }
             },
 
             preloadResources() {
-                // 预加载关键CSS和字体
                 const criticalResources = [
                     'styles/variables.css',
                     'styles/base.css'
@@ -1709,7 +1463,6 @@
             },
 
             preloadIcons() {
-                // 预加载常用域名的图标
                 const commonDomains = [
                     'google.com', 'github.com', 'baidu.com', 
                     'apple.com.cn', 'microsoft.com'
@@ -1719,7 +1472,6 @@
                     const img = new Image();
                     img.src = `icon/${domain}.png`;
                     img.onerror = () => {
-                        // 如果本地图标不存在，预加载Google图标
                         const fallbackImg = new Image();
                         fallbackImg.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
                     };
@@ -1737,12 +1489,9 @@
             }
         };
 
-        // 页面加载完成后初始化应用
         document.addEventListener('DOMContentLoaded', () => {
             App.init();
         });
-
-        // 兼容旧版本的全局函数
         window.toggleTheme = () => ThemeManager.toggle();
         window.switchContent = (content) => ContentManager.switch(content);
     </script>
