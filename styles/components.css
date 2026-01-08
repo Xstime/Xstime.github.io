@@ -319,6 +319,38 @@ body.dark-mode .quick-link:hover {
 }
 
 /* 清空缓存按钮样式 */
+.cache-info {
+    padding: 12px 14px;
+    border: 1px dashed var(--accent-color);
+    border-radius: 12px;
+    background-color: var(--container-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-color);
+}
+
+.cache-label {
+    font-weight: 600;
+}
+
+.cache-values {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cache-value {
+    font-weight: 700;
+    color: var(--accent-color);
+    font-size: 16px;
+}
+
+.cache-updated {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
 .clear-cache-btn {
     padding: 10px 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

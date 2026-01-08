@@ -322,6 +322,13 @@
                     </div>
                     <div class="settings-section">
                         <h3>缓存管理</h3>
+                        <div class="setting-item cache-info">
+                            <div class="cache-label">当前缓存版本</div>
+                            <div class="cache-values">
+                                <span id="cacheVersionDisplay" class="cache-value">--</span>
+                                <span id="cacheUpdatedDisplay" class="cache-updated">加载中...</span>
+                            </div>
+                        </div>
                         <div class="setting-item">
                             <button id="clearCacheBtn" class="clear-cache-btn">🗑️ 清空缓存</button>
                         </div>
@@ -398,6 +405,13 @@
 
             delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
+            },
+
+            formatTimestamp(timestamp) {
+                const date = new Date(Number(timestamp));
+                if (Number.isNaN(date.getTime())) return '';
+                const pad = (num) => String(num).padStart(2, '0');
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
             },
 
             safeQuerySelector(selector) {
@@ -648,6 +662,25 @@
                 }
             },
 
+            updateCacheInfo({ version, cachedAt, status } = {}) {
+                const versionEl = document.getElementById('cacheVersionDisplay');
+                const updatedEl = document.getElementById('cacheUpdatedDisplay');
+
+                if (versionEl) {
+                    versionEl.textContent = version || '未缓存';
+                }
+
+                if (updatedEl) {
+                    if (cachedAt) {
+                        updatedEl.textContent = `缓存时间: ${Utils.formatTimestamp(cachedAt)}`;
+                    } else if (status) {
+                        updatedEl.textContent = status;
+                    } else {
+                        updatedEl.textContent = '尚未生成缓存';
+                    }
+                }
+            },
+
             setCache(links, version) {
                 try {
                     localStorage.setItem(this.CACHE_KEY, JSON.stringify({
@@ -685,6 +718,13 @@
                 if (cached?.data) {
                     AppState.links = cached.data;
                     this.render(cached.data);
+                    this.updateCacheInfo({
+                        version: cached.version || '未知',
+                        cachedAt: cached.cachedAt,
+                        status: '已使用本地缓存'
+                    });
+                } else {
+                    this.updateCacheInfo({ status: '尚未生成缓存' });
                 }
 
                 ErrorManager.hideSection('link');
@@ -697,6 +737,11 @@
                     clearTimeout(timeoutId);
 
                     if (cached?.version === version && cached?.data?.length) {
+                        this.updateCacheInfo({
+                            version,
+                            cachedAt: cached.cachedAt,
+                            status: '已是最新缓存'
+                        });
                         return; // Cache is fresh for this version.
                     }
 
@@ -704,6 +749,11 @@
                     AppState.links = links;
                     this.render(links);
                     this.setCache(links, version);
+                    this.updateCacheInfo({
+                        version,
+                        cachedAt: Date.now(),
+                        status: '已刷新缓存'
+                    });
                     AppState.retryCount = 0;
                 } catch (error) {
                     this.handleError(error);
@@ -725,6 +775,16 @@
 
             handleError(error) {
                 const message = error.message || '加载链接失败，请检查网络连接';
+                const cached = this.getCache();
+                if (cached) {
+                    this.updateCacheInfo({
+                        version: cached.version || '未知',
+                        cachedAt: cached.cachedAt,
+                        status: '加载失败，已回落至缓存'
+                    });
+                } else {
+                    this.updateCacheInfo({ status: '加载失败，暂无缓存' });
+                }
                 if (!AppState.links || AppState.links.length === 0) {
                     ErrorManager.showSection('link', message, () => this.loadWithRetry());
                     ErrorManager.show(message, 'error');
