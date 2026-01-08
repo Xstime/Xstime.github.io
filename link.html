@@ -1612,6 +1612,14 @@
         });
         window.toggleTheme = () => ThemeManager.toggle();
         window.switchContent = (content) => ContentManager.switch(content);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                    console.error('Service worker registration failed:', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
