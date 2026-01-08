@@ -15,46 +15,60 @@
     <link rel="stylesheet" href="styles/loading.css">
     
     <script>
-        (function() {
+        (() => {
             'use strict';
-            async function checkIPLocation() {
-                try {
-                    const apis = [
-                        'https://ipapi.co/json/',
-                        'https://ip-api.com/json/',
-                        'https://ipinfo.io/json'
-                    ];
-                    for (const api of apis) {
-                        try {
-                            const response = await fetch(api, { 
-                                timeout: 5000,
-                                signal: AbortSignal.timeout(5000)
-                            });
-                            
-                            if (!response.ok) continue;
-                            
-                            const data = await response.json();
-                            const countryCode = data.country || data.country_code || data.countryCode;
-                            return countryCode === 'CN';
-                        } catch (err) {
-                            continue;
-                        }
-                    }
-                    return false;
-                    
-                } catch (error) {
+            const API_ENDPOINTS = [
+                'https://ipapi.co/json/',
+                'https://ip-api.com/json/',
+                'https://ipinfo.io/json'
+            ];
+            const DEFAULT_ENGINE = 'google';
+            const TIMEOUT_MS = 1200;
+
+            const setEngine = (engine) => {
+                sessionStorage.setItem('defaultSearchEngine', engine);
+            };
+
+            const detectCountry = async (signal) => {
+                const requests = API_ENDPOINTS.map(async (api) => {
+                    const response = await fetch(api, { signal });
+                    if (!response.ok) throw new Error('bad response');
+                    const data = await response.json();
+                    const countryCode = data.country || data.country_code || data.countryCode;
+                    return countryCode === 'CN';
+                });
+                return Promise.any(requests);
+            };
+
+            const initSearchEngine = () => {
+                if (!sessionStorage.getItem('defaultSearchEngine')) {
+                    setEngine(DEFAULT_ENGINE);
                 }
-            }
-                        async function performChecks() {
-                const isChinaMainland = await checkIPLocation();
-                
-                if (isChinaMainland) {
-                    sessionStorage.setItem('defaultSearchEngine', 'baidu');
-                } else {
-                    sessionStorage.setItem('defaultSearchEngine', 'google');
+
+                if (!window.fetch || !window.AbortController) {
+                    return;
                 }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+                detectCountry(controller.signal)
+                    .then((isChinaMainland) => {
+                        setEngine(isChinaMainland ? 'baidu' : DEFAULT_ENGINE);
+                    })
+                    .catch(() => {
+                        // Keep the default engine on failure or timeout.
+                    })
+                    .finally(() => {
+                        clearTimeout(timeoutId);
+                    });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSearchEngine);
+            } else {
+                initSearchEngine();
             }
-            performChecks();
         })();
     </script>
 
@@ -617,25 +631,80 @@
         };
 
         const LinkManager = {
-            async load() {
+            CACHE_KEY: 'linksCache',
+            VERSION_URL: './links.version.json',
+            LINKS_URL: './links.json',
+            VERSION_TIMEOUT_MS: 1200,
+
+            getCache() {
                 try {
-                    LoadingManager.showSection('link');
-                    ErrorManager.hideSection('link');
-                    
-                    const response = await fetch('./links.json');
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    const raw = localStorage.getItem(this.CACHE_KEY);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    if (!Array.isArray(parsed?.data)) return null;
+                    return parsed;
+                } catch (err) {
+                    return null;
+                }
+            },
+
+            setCache(links, version) {
+                try {
+                    localStorage.setItem(this.CACHE_KEY, JSON.stringify({
+                        data: links,
+                        version,
+                        cachedAt: Date.now()
+                    }));
+                } catch (err) {
+                    // Ignore quota or serialization errors.
+                }
+            },
+
+            async fetchVersion(signal) {
+                const res = await fetch(this.VERSION_URL, { signal });
+                if (!res.ok) throw new Error('版本获取失败');
+                const data = await res.json();
+                if (!data?.version) throw new Error('版本号缺失');
+                return data.version;
+            },
+
+            async fetchLinks() {
+                const response = await fetch(this.LINKS_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const links = await response.json();
+                if (!Array.isArray(links)) {
+                    throw new Error('链接数据格式错误');
+                }
+                return links;
+            },
+
+            async load() {
+                const cached = this.getCache();
+                if (cached?.data) {
+                    AppState.links = cached.data;
+                    this.render(cached.data);
+                }
+
+                ErrorManager.hideSection('link');
+                LoadingManager.showSection('link');
+
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), this.VERSION_TIMEOUT_MS);
+                    const version = await this.fetchVersion(controller.signal);
+                    clearTimeout(timeoutId);
+
+                    if (cached?.version === version && cached?.data?.length) {
+                        return; // Cache is fresh for this version.
                     }
-                    
-                    const links = await response.json();
-                    if (!Array.isArray(links)) {
-                        throw new Error('链接数据格式错误');
-                    }
-                    
+
+                    const links = await this.fetchLinks();
                     AppState.links = links;
                     this.render(links);
-                    AppState.retryCount = 0; 
-                    
+                    this.setCache(links, version);
+                    AppState.retryCount = 0;
                 } catch (error) {
                     this.handleError(error);
                 } finally {
@@ -656,8 +725,12 @@
 
             handleError(error) {
                 const message = error.message || '加载链接失败，请检查网络连接';
-                ErrorManager.showSection('link', message, () => this.loadWithRetry());
-                ErrorManager.show(message, 'error');
+                if (!AppState.links || AppState.links.length === 0) {
+                    ErrorManager.showSection('link', message, () => this.loadWithRetry());
+                    ErrorManager.show(message, 'error');
+                } else {
+                    ErrorManager.show(`${message}，已使用缓存数据`, 'warning');
+                }
             },
 
             render(links = []) {
