@@ -448,7 +448,8 @@
                 const loadingText = overlay?.querySelector('.loading-text');
                 if (overlay) {
                     if (loadingText) loadingText.textContent = text;
-                    overlay.style.display = 'flex';
+                    overlay.classList.add('show');
+                    overlay.removeAttribute('aria-hidden');
                     AppState.isLoading = true;
                 }
             },
@@ -456,7 +457,8 @@
             hide() {
                 const overlay = document.getElementById('global-loading');
                 if (overlay) {
-                    overlay.style.display = 'none';
+                    overlay.classList.remove('show');
+                    overlay.setAttribute('aria-hidden', 'true');
                     AppState.isLoading = false;
                 }
             },
