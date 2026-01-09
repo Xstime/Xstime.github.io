@@ -715,36 +715,21 @@
                 return links;
             },
 
-            async load() {
-                const cached = this.getCache();
-                if (cached?.data) {
-                    AppState.links = cached.data;
-                    this.render(cached.data);
-                    this.updateCacheInfo({
-                        version: cached.version || '未知',
-                        cachedAt: cached.cachedAt,
-                        status: '已使用本地缓存'
-                    });
-                } else {
-                    this.updateCacheInfo({ status: '尚未生成缓存' });
-                }
-
-                ErrorManager.hideSection('link');
-                LoadingManager.showSection('link');
+            async checkForUpdates(cached) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), this.VERSION_TIMEOUT_MS);
 
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), this.VERSION_TIMEOUT_MS);
                     const version = await this.fetchVersion(controller.signal);
-                    clearTimeout(timeoutId);
+                    const isFresh = cached?.version === version && cached?.data?.length;
 
-                    if (cached?.version === version && cached?.data?.length) {
+                    if (isFresh) {
                         this.updateCacheInfo({
                             version,
                             cachedAt: cached.cachedAt,
                             status: '已是最新缓存'
                         });
-                        return; // Cache is fresh for this version.
+                        return;
                     }
 
                     const links = await this.fetchLinks();
@@ -757,6 +742,33 @@
                         status: '已刷新缓存'
                     });
                     AppState.retryCount = 0;
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+            },
+
+            async load() {
+                const cached = this.getCache();
+                const hasCachedData = Array.isArray(cached?.data) && cached.data.length > 0;
+
+                if (hasCachedData) {
+                    AppState.links = cached.data;
+                    this.render(cached.data);
+                    this.updateCacheInfo({
+                        version: cached.version || '未知',
+                        cachedAt: cached.cachedAt,
+                        status: '已使用本地缓存'
+                    });
+                    LoadingManager.hideSection('link');
+                } else {
+                    this.updateCacheInfo({ status: '尚未生成缓存' });
+                    LoadingManager.showSection('link');
+                }
+
+                ErrorManager.hideSection('link');
+
+                try {
+                    await this.checkForUpdates(cached);
                 } catch (error) {
                     this.handleError(error);
                 } finally {
