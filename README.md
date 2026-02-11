@@ -61,7 +61,7 @@
 ├── links.json             # 链接数据
 ├── links.version.json     # 版本信息
 ├── touxiang.png          # 头像图片
-├── RefuseToResponse.html  # 特殊页面
+├── RefuseToResponse.html  # 设备限制提示页面（仅Apple设备）
 ├── sw.js                  # Service Worker
 ├── download_favicon.py    # 图标下载脚本
 ├── fetch_icons.py         # 图标获取脚本
@@ -100,7 +100,7 @@
 1. 推送代码到GitHub仓库
 2. 在仓库设置中启用GitHub Pages
 3. 选择主分支作为发布源
-4. 访问 `https://yourusername.github.io` 查看网站
+4. 访问 `https://xstime.github.io` 查看网站
 
 ## 🎯 使用Python脚本
 
