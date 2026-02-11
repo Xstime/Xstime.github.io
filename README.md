@@ -61,7 +61,7 @@
 ├── links.json             # 链接数据
 ├── links.version.json     # 版本信息
 ├── touxiang.png          # 头像图片
-├── RefuseToResponse.html  # 设备限制提示页面（仅Apple设备）
+├── RefuseToResponse.html  # 非Apple设备访问限制提示页面
 ├── sw.js                  # Service Worker
 ├── download_favicon.py    # 图标下载脚本
 ├── fetch_icons.py         # 图标获取脚本
