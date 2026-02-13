@@ -1,6 +1,6 @@
 // Simple site-wide service worker for offline caching
 // Cache version string should be updated when static assets change
-const CACHE_VERSION = 'site-cache-2026-01-08-1';
+const CACHE_VERSION = 'site-cache-2026-02-13-1';
 const PRECACHE_PATHS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const PRECACHE_PATHS = [
   './styles/loading.css',
   './styles/safe-area.css',
   './links.json',
+  './links_CN.json',
   './links.version.json',
   './touxiang.png',
   './icon/default.png'

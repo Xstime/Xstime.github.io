@@ -22,6 +22,11 @@
                 'https://ip-api.com/json/',
                 'https://ipinfo.io/json'
             ];
+            const REGION_STORAGE_KEY = 'regionSetting';
+            const REGION_ENGINE_MAP = {
+                global: 'google',
+                china: 'baidu'
+            };
             const DEFAULT_ENGINE = 'google';
             const TIMEOUT_MS = 1200;
 
@@ -41,6 +46,12 @@
             };
 
             const initSearchEngine = () => {
+                const savedRegion = localStorage.getItem(REGION_STORAGE_KEY);
+                if (savedRegion && REGION_ENGINE_MAP[savedRegion]) {
+                    setEngine(REGION_ENGINE_MAP[savedRegion]);
+                    return;
+                }
+
                 if (!sessionStorage.getItem('defaultSearchEngine')) {
                     setEngine(DEFAULT_ENGINE);
                 }
@@ -54,7 +65,17 @@
 
                 detectCountry(controller.signal)
                     .then((isChinaMainland) => {
-                        setEngine(isChinaMainland ? 'baidu' : DEFAULT_ENGINE);
+                        const existingRegion = localStorage.getItem(REGION_STORAGE_KEY);
+                        if (existingRegion && REGION_ENGINE_MAP[existingRegion]) {
+                            setEngine(REGION_ENGINE_MAP[existingRegion]);
+                            return;
+                        }
+                        const region = isChinaMainland ? 'china' : 'global';
+                        localStorage.setItem(REGION_STORAGE_KEY, region);
+                        setEngine(REGION_ENGINE_MAP[region] || DEFAULT_ENGINE);
+                        window.dispatchEvent(new CustomEvent('region-autodetected', {
+                            detail: { region }
+                        }));
                     })
                     .catch(() => {
                         // Keep the default engine on failure or timeout.
@@ -138,6 +159,7 @@
 
     <a href="index.html" class="fixed-button back-button">←</a>
     <button class="fixed-button theme-toggle">🌗</button>
+    <button class="fixed-button region-toggle" id="region-toggle-btn" title="切换地区">🌍</button>
     <a href="http://192.168.5.1/cgi-bin/luci/" target="_blank" class="fixed-button router-button">🛜</a>
 
     <!-- 全局加载遮罩 -->
@@ -321,6 +343,16 @@
                         </div>
                     </div>
                     <div class="settings-section">
+                        <h3>地区设置</h3>
+                        <div class="setting-item">
+                            <label>内容与搜索来源</label>
+                            <div class="theme-selector region-selector">
+                                <button class="theme-option region-option" data-region="global">🌍 全球</button>
+                                <button class="theme-option region-option" data-region="china">🇨🇳 中国</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
                         <h3>缓存管理</h3>
                         <div class="setting-item cache-info">
                             <div class="cache-label">当前缓存版本</div>
@@ -372,6 +404,7 @@
             isLoading: false,
             currentTheme: 'auto',
             currentContent: 'home',
+            currentRegion: 'global',
             retryCount: 0,
             links: [],
             isOffline: false
@@ -647,10 +680,21 @@
         };
 
         const LinkManager = {
-            CACHE_KEY: 'linksCache',
+            BASE_CACHE_KEY: 'linksCache',
+            REGION_LINKS_MAP: {
+                global: './links.json',
+                china: './links_CN.json'
+            },
+            CACHE_KEY: 'linksCache-global',
             VERSION_URL: './links.version.json',
             LINKS_URL: './links.json',
             VERSION_TIMEOUT_MS: 1200,
+
+            setRegion(region) {
+                const normalized = this.REGION_LINKS_MAP[region] ? region : 'global';
+                this.LINKS_URL = this.REGION_LINKS_MAP[normalized];
+                this.CACHE_KEY = `${this.BASE_CACHE_KEY}-${normalized}`;
+            },
 
             getCache() {
                 try {
@@ -861,6 +905,79 @@
             },
         };
 
+        const RegionManager = {
+            STORAGE_KEY: 'regionSetting',
+            DEFAULT_REGION: 'global',
+            REGION_ENGINE_MAP: {
+                global: 'google',
+                china: 'baidu'
+            },
+
+            REGION_ICON_MAP: {
+                global: '🌍',
+                china: '🇨🇳'
+            },
+
+            init() {
+                const savedRegion = localStorage.getItem(this.STORAGE_KEY) || this.DEFAULT_REGION;
+                this.setRegion(savedRegion, { persist: false, reloadLinks: false });
+                window.addEventListener('region-autodetected', (event) => {
+                    const detectedRegion = event.detail?.region;
+                    if (!detectedRegion || detectedRegion === AppState.currentRegion) {
+                        return;
+                    }
+                    this.setRegion(detectedRegion, { persist: false, reloadLinks: true });
+                });
+            },
+
+            setRegion(region, { persist = true, reloadLinks = true } = {}) {
+                const normalized = this.REGION_ENGINE_MAP[region] ? region : this.DEFAULT_REGION;
+                AppState.currentRegion = normalized;
+
+                if (persist) {
+                    localStorage.setItem(this.STORAGE_KEY, normalized);
+                }
+
+                const engine = this.REGION_ENGINE_MAP[normalized] || 'google';
+                sessionStorage.setItem('defaultSearchEngine', engine);
+                SearchManager.defaultEngine = engine;
+                SearchManager.currentEngine = engine;
+                SearchManager.updateSearchIcon(engine);
+
+                LinkManager.setRegion(normalized);
+                AppState.retryCount = 0;
+
+                if (reloadLinks) {
+                    LinkManager.load();
+                }
+
+                this.updateRegionUI(normalized);
+                this.updateRegionToggleUI(normalized);
+            },
+
+            updateRegionUI(region) {
+                const regionOptions = document.querySelectorAll('.region-option');
+                regionOptions.forEach(option => {
+                    option.classList.toggle('active', option.getAttribute('data-region') === region);
+                });
+            },
+
+            updateRegionToggleUI(region) {
+                const toggleBtn = document.getElementById('region-toggle-btn');
+                if (!toggleBtn) return;
+
+                const icon = this.REGION_ICON_MAP[region] || this.REGION_ICON_MAP[this.DEFAULT_REGION];
+                const label = region === 'china' ? '中国' : '全球';
+                toggleBtn.textContent = icon;
+                toggleBtn.title = `当前地区：${label}（点击切换）`;
+            },
+
+            toggleRegion() {
+                const nextRegion = AppState.currentRegion === 'china' ? 'global' : 'china';
+                this.setRegion(nextRegion);
+            }
+        };
+
         const ThemeManager = {
             init() {
                 const savedTheme = localStorage.getItem('theme') || 'auto';
@@ -883,7 +1000,7 @@
             },
 
             updateThemeUI(theme) {
-                const themeOptions = document.querySelectorAll('.theme-option');
+                const themeOptions = document.querySelectorAll('.theme-option[data-theme]');
                 themeOptions.forEach(option => {
                     option.classList.toggle('active', option.getAttribute('data-theme') === theme);
                 });
@@ -966,6 +1083,8 @@
                 this.setupDockEvents();
                 this.setupSearchEvents();
                 this.setupThemeEvents();
+                this.setupRegionEvents();
+                this.setupRegionToggleEvents();
                 this.setupKeyboardEvents();
                 this.setupGlobalEvents();
                 this.setupClearCacheEvents();
@@ -1045,7 +1164,7 @@
 
             setupThemeEvents() {
                 const themeToggle = document.querySelector('.theme-toggle');
-                const themeOptions = document.querySelectorAll('.theme-option');
+                const themeOptions = document.querySelectorAll('.theme-option[data-theme]');
                 
                 if (themeToggle) {
                     themeToggle.addEventListener('click', (e) => {
@@ -1057,6 +1176,20 @@
                 themeOptions.forEach(option => {
                     option.addEventListener('click', this.handleThemeOptionClick.bind(this));
                 });
+            },
+
+            setupRegionEvents() {
+                const regionOptions = document.querySelectorAll('.region-option');
+                regionOptions.forEach(option => {
+                    option.addEventListener('click', this.handleRegionOptionClick.bind(this));
+                });
+            },
+
+            setupRegionToggleEvents() {
+                const regionToggleBtn = document.getElementById('region-toggle-btn');
+                if (regionToggleBtn) {
+                    regionToggleBtn.addEventListener('click', this.handleRegionToggleClick.bind(this));
+                }
             },
 
             setupKeyboardEvents() {
@@ -1211,6 +1344,16 @@
                 const theme = e.currentTarget.getAttribute('data-theme');
                 ThemeManager.setTheme(theme);
                 ThemeManager.updateThemeUI(theme);
+            },
+
+            handleRegionOptionClick(e) {
+                const region = e.currentTarget.getAttribute('data-region');
+                RegionManager.setRegion(region);
+            },
+
+            handleRegionToggleClick(e) {
+                e.preventDefault();
+                RegionManager.toggleRegion();
             },
 
             handleKeyDown(e) {
@@ -1565,10 +1708,9 @@
                     ThemeManager.init();
                     DockManager.init();
                     ContentManager.init();
+                    RegionManager.init();
                     EventManager.init();
                     
-                    const defaultEngine = sessionStorage.getItem('defaultSearchEngine') || 'google';
-                    SearchManager.updateSearchIcon(defaultEngine);                    
                     await LinkManager.load();
                     this.preloadIcons();
                     LoadingManager.hide();
