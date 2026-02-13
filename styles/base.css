@@ -30,6 +30,18 @@ html, body {
     min-height: -webkit-fill-available;
 }
 
+html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
 /* 专门为移动设备安全区域添加背景色覆盖 */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
     html {
