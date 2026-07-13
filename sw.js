@@ -1,6 +1,6 @@
-// Simple site-wide service worker for offline caching
-// Cache version string should be updated when static assets change
-const CACHE_VERSION = 'site-cache-2026-02-13-1';
+// Site-wide service worker for offline caching.
+// Update CACHE_VERSION whenever static assets change.
+const CACHE_VERSION = 'site-cache-2026-07-13-1';
 const PRECACHE_PATHS = [
   './',
   './index.html',
@@ -14,7 +14,7 @@ const PRECACHE_PATHS = [
   './styles/index.css',
   './styles/link.css',
   './styles/loading.css',
-  './styles/safe-area.css',
+  './scripts/index.js',
   './links.json',
   './links_CN.json',
   './links.version.json',
@@ -22,9 +22,9 @@ const PRECACHE_PATHS = [
   './icon/default.png'
 ];
 
+const CACHE_NAME = CACHE_VERSION;
 const toAbsolute = (path) => new URL(path, self.location.origin).toString();
 const PRECACHE_URLS = PRECACHE_PATHS.map(toAbsolute);
-const CACHE_NAME = `${CACHE_VERSION}`;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -36,59 +36,89 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(keys.map((key) => {
-        if (key !== CACHE_NAME) {
-          return caches.delete(key);
-        }
-        return Promise.resolve();
-      }));
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((key) => (key === CACHE_NAME ? Promise.resolve() : caches.delete(key)))))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-
-  if (request.method !== 'GET') return;
+  if (request.method !== 'GET') {
+    return;
+  }
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
-  // HTML: network-first with cache fallback for offline
-  if (request.headers.get('accept')?.includes('text/html')) {
+  const destination = request.destination;
+  const isHtml = request.headers.get('accept')?.includes('text/html');
+
+  if (isHtml) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  // Other static assets: cache-first with network fallback
+  if (destination === 'script' || destination === 'style' || destination === 'image') {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
   event.respondWith(cacheFirst(request));
 });
 
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
+    cacheIfSuccess(request, response.clone());
     return response;
-  } catch (err) {
+  } catch (error) {
     const cached = await caches.match(request);
-    if (cached) return cached;
-    // Fallback to root if available
+    if (cached) {
+      return cached;
+    }
     const fallback = await caches.match(toAbsolute('./index.html'));
     return fallback || Response.error();
   }
 }
 
+async function staleWhileRevalidate(request) {
+  const cached = await caches.match(request);
+  const fetchPromise = fetch(request)
+    .then((response) => {
+      cacheIfSuccess(request, response.clone());
+      return response;
+    })
+    .catch(() => null);
+
+  if (cached) {
+    return cached;
+  }
+
+  const networkResponse = await fetchPromise;
+  return networkResponse || Response.error();
+}
+
 async function cacheFirst(request) {
   const cached = await caches.match(request);
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
   try {
     const response = await fetch(request);
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
+    cacheIfSuccess(request, response.clone());
     return response;
-  } catch (err) {
-    return cached || Response.error();
+  } catch (error) {
+    return Response.error();
   }
+}
+
+async function cacheIfSuccess(request, response) {
+  if (!response || !response.ok) {
+    return;
+  }
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(request, response);
 }
