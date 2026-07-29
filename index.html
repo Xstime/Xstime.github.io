@@ -1,57 +1,78 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Yuhao</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#03050a">
+  <meta name="description" content="一座漂浮在星际航道中的时钟。">
+  <title>星际时刻 · Yuhao</title>
   <link rel="icon" type="image/png" href="touxiang.png">
-  <link rel="stylesheet" href="styles/variables.css">
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/safe-area.css">
-  <link rel="stylesheet" href="styles/components.css">
-  <link rel="stylesheet" href="styles/layout.css">
-  <link rel="stylesheet" href="styles/animations.css">
-  <link rel="stylesheet" href="styles/index.css">
+  <link rel="stylesheet" href="styles/index.css?v=20260730-1">
 </head>
 <body>
-
-  <a href="link.html" class="fixed-button back-button" title="前往链接库">↗</a>
-  <button class="fixed-button theme-toggle" type="button" title="切换主题">🌗</button>
-  <button id="back-to-top" class="fixed-button back-to-top" title="返回顶部">↑</button>
-
-  <div class="main-container">
-    <section class="container hero-card reveal-on-scroll">
-      <div class="hero-top">
-        <img src="touxiang.png" alt="Yuhao" class="hero-avatar">
-        <div class="hero-text">
-          <h1 class="main-title">嗨！这里是Yuhao</h1>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact" class="container section-card reveal-on-scroll">
-      <div class="section-header">
-        <p class="eyebrow">Stay in touch</p>
-        <h2>联系与最近动态</h2>
-        <p>欢迎交流项目、研究或合作，主页和链接库随时更新。</p>
-      </div>
-      <div class="quick-links info-grid">
-        <a class="link-item" href="mailto:yoaholyn@icloud.com">
-          <div class="favicon text-favicon">✉️</div>
-          <span>邮件直达</span>
-        </a>
-        <a class="link-item" href="https://github.com/Xstime" target="_blank">
-          <div class="favicon text-favicon">🐱</div>
-          <span>GitHub · Xstime</span>
-        </a>
-        <a class="link-item" href="link.html">
-          <div class="favicon text-favicon">🔗</div>
-          <span>由此出发</span>
-        </a>
-      </div>
-    </section>
+  <div class="warp-background" aria-hidden="true">
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
+    <div class="stars"></div>
   </div>
+  <div class="space-haze" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
 
-  <script src="scripts/index.js" defer></script>
+  <header class="topbar">
+    <a class="brand" href="link.html" aria-label="前往链接库">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>XSTIME</span>
+    </a>
+
+    <div class="live-indicator" aria-label="新闻实时更新中">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span>LIVE</span>
+    </div>
+  </header>
+
+  <aside class="news-stage" aria-live="polite" aria-atomic="true">
+    <a id="news-card" class="news-card" href="#" target="_blank" rel="noopener noreferrer" aria-label="查看热点新闻">
+      <span class="news-kicker">
+        <span class="news-pulse" aria-hidden="true"></span>
+        WORLD SIGNAL
+      </span>
+      <span id="news-title" class="news-title">正在接收全球热点信号…</span>
+      <span id="news-meta" class="news-meta">WIKIMEDIA · LIVE</span>
+      <span class="news-arrow" aria-hidden="true">↗</span>
+    </a>
+  </aside>
+
+  <main class="clock-stage">
+    <section class="clock-panel" aria-label="当前时间">
+      <p id="time-zone" class="time-zone">正在定位当前 IP…</p>
+      <time id="clock" class="clock" datetime="00:00:00">
+        <span id="hours">00</span>
+        <span class="colon" aria-hidden="true"><i></i><i></i></span>
+        <span id="minutes">00</span>
+      </time>
+      <div class="clock-footer">
+        <p id="seconds" class="seconds">00</p>
+        <span class="divider" aria-hidden="true"></span>
+        <p id="date" class="date">2026年7月29日 星期三</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="hud-footer">
+    <p><span class="status-dot" aria-hidden="true"></span>WARP DRIVE ACTIVE</p>
+    <button id="motion-toggle" class="motion-toggle" type="button" aria-pressed="false">
+      <span class="pause-icon" aria-hidden="true"></span>
+      <span class="motion-label">暂停航行</span>
+    </button>
+  </footer>
+
+  <noscript>请启用 JavaScript 以显示动态星空和实时时钟。</noscript>
+  <script src="scripts/index.js?v=20260730-1" defer></script>
 </body>
 </html>

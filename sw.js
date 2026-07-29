@@ -1,6 +1,6 @@
 // Site-wide service worker for offline caching.
 // Update CACHE_VERSION whenever static assets change.
-const CACHE_VERSION = 'site-cache-2026-07-13-2';
+const CACHE_VERSION = 'site-cache-2026-07-30-warp-1';
 const PRECACHE_PATHS = [
   './',
   './index.html',
@@ -15,6 +15,7 @@ const PRECACHE_PATHS = [
   './styles/link.css',
   './styles/loading.css',
   './scripts/index.js',
+  './data/news.json',
   './links.json',
   './links_CN.json',
   './links.version.json',
@@ -55,6 +56,11 @@ self.addEventListener('fetch', (event) => {
 
   const destination = request.destination;
   const isHtml = request.headers.get('accept')?.includes('text/html');
+
+  if (url.pathname.endsWith('/data/news.json')) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
 
   if (isHtml) {
     event.respondWith(networkFirst(request));
