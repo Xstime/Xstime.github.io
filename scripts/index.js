@@ -39,6 +39,7 @@
 
   const NEWS_VISIBLE_MS = 8500;
   const NEWS_GAP_MS = 9000;
+  const NEWS_REFRESH_MS = 20 * 60 * 1000;
 
   function updateClock() {
     const now = new Date();
@@ -201,6 +202,7 @@
   fetchNews().finally(() => {
     window.setTimeout(showNextHeadline, 800);
   });
+  window.setInterval(fetchNews, NEWS_REFRESH_MS);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
