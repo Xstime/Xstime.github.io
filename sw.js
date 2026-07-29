@@ -1,6 +1,6 @@
 // Site-wide service worker for offline caching.
 // Update CACHE_VERSION whenever static assets change.
-const CACHE_VERSION = 'site-cache-2026-07-30-warp-2';
+const CACHE_VERSION = 'site-cache-2026-07-30-warp-3';
 const PRECACHE_PATHS = [
   './',
   './index.html',

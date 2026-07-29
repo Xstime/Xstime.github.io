@@ -60,20 +60,13 @@
     clock.setAttribute('aria-label', `${hourValue}时${minuteValue}分${secondValue}秒`);
   }
 
-  function describeIpLocation(payload) {
-    const ip = cleanText(payload.ip);
-    const pconlineAddress = cleanText(payload.addr);
-    if (pconlineAddress) {
-      return `${ip ? `IP ${ip} · ` : 'IP · '}${pconlineAddress}`;
-    }
-
+  function describeLocation(payload) {
     const city = cleanText(payload.city);
-    const region = cleanText(payload.region);
     const country = cleanText(payload.country || payload.country_name);
-    const fields = [city, region, country].filter((item, index, all) => item && all.indexOf(item) === index);
+    const fields = [city, country].filter((item, index, all) => item && all.indexOf(item) === index);
 
     if (fields.length === 0) throw new Error('IP location response is incomplete.');
-    return `${ip ? `IP ${ip} · ` : 'IP · '}${fields.join(' · ')}`;
+    return fields.join(', ');
   }
 
   async function requestIpLocation(url) {
@@ -88,18 +81,17 @@
       if (!response.ok) throw new Error(`IP location request failed: ${response.status}`);
       const payload = await response.json();
       if (payload.success === false || payload.error) throw new Error('IP location service returned an error.');
-      return describeIpLocation(payload);
+      return describeLocation(payload);
     } finally {
       window.clearTimeout(timeout);
     }
   }
 
   async function loadIpLocation() {
-    timezoneLabel.textContent = '正在定位当前 IP…';
+    timezoneLabel.textContent = '正在定位地点…';
 
     const sources = [
-      'https://whois.pconline.com.cn/ipJson.jsp?json=true',
-      'https://ipwho.is/?lang=zh-CN',
+      'https://ipwho.is/',
       'https://ipapi.co/json/'
     ];
 
@@ -112,7 +104,7 @@
       }
     }
 
-    timezoneLabel.textContent = '当前 IP 地址暂不可用';
+    timezoneLabel.textContent = '当前位置暂不可用';
   }
 
   function cleanText(value) {
